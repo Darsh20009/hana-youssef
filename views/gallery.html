@@ -276,13 +276,18 @@ function renderGallery() {
   document.getElementById('noPhotos').style.display = 'none';
   document.getElementById('scrollWrap').style.display = 'block';
 
-  // Horizontal track — first 12 IMAGES only (no videos, for speed)
-  const trackPhotos = allPhotos.filter(p => p.type === 'image').slice(0, 12);
-  [...trackPhotos, ...trackPhotos].forEach((p, i) => {
+  // Horizontal infinite track — ALL media (images + videos), duplicated for seamless loop
+  const trackPhotos = [...allPhotos];
+  function makeTrackCard(p, i) {
     const card = document.createElement('div');
     card.className = 'gallery-card';
     card.addEventListener('click', () => openLightbox(p));
-    card.appendChild(makeMediaEl(p, false));
+    // images load normally; videos lazy via IntersectionObserver (fires as card crosses viewport)
+    card.appendChild(makeMediaEl(p, p.type === 'video'));
+    if (p.type === 'video') {
+      const vbadge = document.createElement('div'); vbadge.className = 'video-badge';
+      vbadge.textContent = '▶'; card.appendChild(vbadge);
+    }
     const overlay = document.createElement('div'); overlay.className = 'overlay';
     const phraseEl = document.createElement('div'); phraseEl.className = 'phrase';
     phraseEl.textContent = PHRASES[i % PHRASES.length];
@@ -292,9 +297,20 @@ function renderGallery() {
     const heartEl = document.createElement('div'); heartEl.className = 'camel';
     heartEl.textContent = HEARTS[i % HEARTS.length];
     card.appendChild(heartEl);
-    trackEl.appendChild(card);
+    return card;
+  }
+  // Build two identical sets so the loop is seamless
+  [...trackPhotos, ...trackPhotos].forEach((p, i) => {
+    trackEl.appendChild(makeTrackCard(p, i));
   });
-  if (trackPhotos.length > 1) trackEl.classList.add('animate');
+  if (trackPhotos.length > 1) {
+    // Speed: ~180px/s — adjust dynamically by count so it never feels too fast or too slow
+    const cardW = 234; // 220px card + 14px gap
+    const trackHalfW = trackPhotos.length * cardW;
+    const duration = Math.round(trackHalfW / 120); // 120 px/s
+    trackEl.style.animationDuration = duration + 's';
+    trackEl.classList.add('animate');
+  }
 
   // Grid — paginated
   renderPage(gridEl);
