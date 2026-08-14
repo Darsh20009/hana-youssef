@@ -59,7 +59,7 @@
     <button class="music-btn" onclick="nextSong()">⏭</button>
   </div>
 </div>
-<div id="ytPlayer" style="position:fixed;bottom:-300px;left:-300px;width:1px;height:1px;opacity:0;pointer-events:none;"></div>
+<audio id="audioPlayer" loop preload="none" style="display:none"></audio>
 
 <!-- Gallery -->
 <section class="gallery-section">
@@ -106,7 +106,6 @@
 @keyframes floatUp{0%{transform:translateY(0) rotate(0) scale(1);opacity:1}100%{transform:translateY(-110vh) rotate(720deg) scale(.3);opacity:0}}
 </style>
 
-<script src="https://www.youtube.com/iframe_api"></script>
 <script>
 // ── Safety: escape HTML to prevent XSS ──────────────────
 function esc(str) {
@@ -165,82 +164,50 @@ const track = document.getElementById('phrasesTrack');
   track.appendChild(el);
 });
 
-// ── YouTube Music — initialised on first user click ──────
-const SONGS = [
-  {id:'NnHpVaUSqhk', title:'نور العين',        artist:'عمرو دياب'},
-  {id:'Uj1ykZlABCg', title:'تملي معاك',        artist:'عمرو دياب'},
-  {id:'L_jWHffIx5E', title:'Smells Like Teen', artist:'مزيكا'},  // fallback
-  {id:'k5ka6DpnXR0', title:'بتجنن',            artist:'تامر حسني'},
-  {id:'M4s1ZIbGFNs', title:'معاك',             artist:'أنغام'},
-  {id:'f4Mc-NYPHaQ', title:'انت عمري',         artist:'أم كلثوم'},
-  {id:'rYEDA3JcQqw', title:'بحبك',             artist:'حماقي'},
-];
-let player = null, currentSong = 0, isPlaying = false, playerReady = false;
+// ── Local Audio Player ────────────────────────────────────
+const audioEl = document.getElementById('audioPlayer');
+audioEl.src = '/media/Amr_Diab_-_Khalik_Maaya___\u0639\u0645\u0631\u0648_\u062f\u064a\u0627\u0628_-_\u062e\u0644\u064a\u0643_\u0645\u0639\u0627\u064a\u0627_1786738867805.mp3';
 
-function initPlayer() {
-  if (player) return; // already created
-  document.getElementById('playBtn').textContent = '⏳';
-  player = new YT.Player('ytPlayer', {
-    height: '1', width: '1',
-    videoId: SONGS[currentSong].id,
-    playerVars: { autoplay: 1, controls: 0, mute: 0, rel: 0 },
-    events: {
-      onReady: e => {
-        playerReady = true;
-        e.target.playVideo();
-        isPlaying = true;
-        document.getElementById('playBtn').textContent = '⏸';
-        updateSongInfo();
-      },
-      onStateChange: e => {
-        if (e.data === YT.PlayerState.ENDED) nextSong();
-        if (e.data === YT.PlayerState.PLAYING) { isPlaying = true; document.getElementById('playBtn').textContent = '⏸'; }
-        if (e.data === YT.PlayerState.PAUSED)  { isPlaying = false; document.getElementById('playBtn').textContent = '▶'; }
-      },
-      onError: () => { setTimeout(nextSong, 1000); } // skip broken videos
+document.getElementById('songTitle').textContent  = 'خليك معايا — عمرو دياب';
+document.getElementById('songArtist').textContent = 'اضغط ▶ لتشغيل الموسيقى 🎶';
+
+audioEl.addEventListener('play',  () => { document.getElementById('playBtn').textContent = '⏸'; document.getElementById('songArtist').textContent = '🎵 شغّالة...'; });
+audioEl.addEventListener('pause', () => { document.getElementById('playBtn').textContent = '▶'; document.getElementById('songArtist').textContent = 'اضغط ▶ للاستمرار 🎶'; });
+
+function togglePlay() {
+  if (audioEl.paused) audioEl.play().catch(()=>{});
+  else audioEl.pause();
+}
+function nextSong()  { audioEl.currentTime = 0; audioEl.play().catch(()=>{}); }
+function prevSong()  { audioEl.currentTime = 0; }
+
+// ── Gallery ───────────────────────────────────────────────
+const CAMEL = ['🐪','🌟','🌹','💕','✨','🌙','💎'];
+let allPhotos = [], shownCount = 0;
+const PAGE = 24;
+
+// Lazy video observer — only loads src when card enters viewport
+const videoObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    const v = e.target;
+    if (e.isIntersecting && v.dataset.src) {
+      v.src = v.dataset.src;
+      delete v.dataset.src;
+      videoObserver.unobserve(v);
     }
   });
-}
-function onYouTubeIframeAPIReady() { /* loaded — wait for user click */ }
+}, { rootMargin: '200px' });
 
-function updateSongInfo() {
-  const s = SONGS[currentSong];
-  document.getElementById('songTitle').textContent  = s.title + ' — ' + s.artist;
-  document.getElementById('songArtist').textContent = 'أغاني مصرية 🎶';
-}
-function togglePlay() {
-  if (!player) { initPlayer(); return; }
-  if (!playerReady) return;
-  if (isPlaying) { player.pauseVideo(); }
-  else           { player.playVideo(); }
-}
-function nextSong() {
-  currentSong = (currentSong + 1) % SONGS.length;
-  updateSongInfo();
-  if (player && playerReady) { player.loadVideoById(SONGS[currentSong].id); isPlaying = true; document.getElementById('playBtn').textContent = '⏸'; }
-}
-function prevSong() {
-  currentSong = (currentSong - 1 + SONGS.length) % SONGS.length;
-  updateSongInfo();
-  if (player && playerReady) { player.loadVideoById(SONGS[currentSong].id); isPlaying = true; document.getElementById('playBtn').textContent = '⏸'; }
-}
-
-// ── Gallery — safe DOM building (no innerHTML for user data) ─
-const CAMEL = ['🐪','🌟','🌹','💕','✨','🌙','💎'];
-let allPhotos = [];
-
-function makeMediaEl(photo) {
-  let el;
+function makeMediaEl(photo, lazy = false) {
   if (photo.type === 'video') {
-    el = document.createElement('video');
-    el.src = photo.path;
-    el.muted = true; el.loop = true; el.autoplay = true; el.playsInline = true;
-  } else {
-    el = document.createElement('img');
-    el.src = photo.path;
-    el.alt = 'صورتنا';
-    el.loading = 'lazy';
+    const el = document.createElement('video');
+    el.muted = true; el.loop = true; el.playsInline = true; el.preload = 'none';
+    if (lazy) { el.dataset.src = photo.path; videoObserver.observe(el); }
+    else       { el.src = photo.path; }
+    return el;
   }
+  const el = document.createElement('img');
+  el.src = photo.path; el.alt = 'صورتنا'; el.loading = 'lazy';
   return el;
 }
 
@@ -255,6 +222,7 @@ function renderGallery() {
   const trackEl = document.getElementById('galleryTrack');
   const gridEl  = document.getElementById('galleryGrid');
   trackEl.innerHTML = ''; gridEl.innerHTML = '';
+  shownCount = 0;
 
   if (allPhotos.length === 0) {
     document.getElementById('noPhotos').style.display = 'block';
@@ -264,63 +232,66 @@ function renderGallery() {
   document.getElementById('noPhotos').style.display = 'none';
   document.getElementById('scrollWrap').style.display = 'block';
 
-  // Infinite scroll track (doubled)
-  [...allPhotos, ...allPhotos].forEach((p, i) => {
-    const phrase = PHRASES[i % PHRASES.length];
-    const camel  = CAMEL[i % CAMEL.length];
-
+  // Horizontal track — first 12 IMAGES only (no videos, for speed)
+  const trackPhotos = allPhotos.filter(p => p.type === 'image').slice(0, 12);
+  [...trackPhotos, ...trackPhotos].forEach((p, i) => {
     const card = document.createElement('div');
     card.className = 'gallery-card';
     card.addEventListener('click', () => openLightbox(p));
-
-    card.appendChild(makeMediaEl(p));
-
-    // Overlay — built with DOM (safe)
-    const overlay = document.createElement('div');
-    overlay.className = 'overlay';
-    const phraseEl = document.createElement('div');
-    phraseEl.className = 'phrase';
-    phraseEl.textContent = phrase;
+    card.appendChild(makeMediaEl(p, false));
+    const overlay = document.createElement('div'); overlay.className = 'overlay';
+    const phraseEl = document.createElement('div'); phraseEl.className = 'phrase';
+    phraseEl.textContent = PHRASES[i % PHRASES.length];
     overlay.appendChild(phraseEl);
-    if (p.caption) {
-      const capEl = document.createElement('div');
-      capEl.className = 'caption';
-      capEl.textContent = p.caption;   // textContent — no XSS
-      overlay.appendChild(capEl);
-    }
+    if (p.caption) { const c = document.createElement('div'); c.className = 'caption'; c.textContent = p.caption; overlay.appendChild(c); }
     card.appendChild(overlay);
-
-    const camelEl = document.createElement('div');
-    camelEl.className = 'camel';
-    camelEl.textContent = camel;
+    const camelEl = document.createElement('div'); camelEl.className = 'camel';
+    camelEl.textContent = CAMEL[i % CAMEL.length];
     card.appendChild(camelEl);
-
     trackEl.appendChild(card);
   });
+  if (trackPhotos.length > 1) trackEl.classList.add('animate');
 
-  if (allPhotos.length > 1) trackEl.classList.add('animate');
+  // Grid — paginated
+  renderPage(gridEl);
+  setupSentinel(gridEl);
+}
 
-  // Grid
-  allPhotos.forEach((p, i) => {
+function renderPage(gridEl) {
+  const batch = allPhotos.slice(shownCount, shownCount + PAGE);
+  batch.forEach((p, i) => {
+    const idx = shownCount + i;
     const card = document.createElement('div');
     card.className = 'grid-card';
     card.addEventListener('click', () => openLightbox(p));
-    card.appendChild(makeMediaEl(p));
+    card.appendChild(makeMediaEl(p, true)); // lazy load
     if (p.type === 'video') {
-      const badge = document.createElement('div');
-      badge.className = 'video-badge';
-      badge.textContent = '🎬';
+      const badge = document.createElement('div'); badge.className = 'video-badge'; badge.textContent = '🎬';
       card.appendChild(badge);
     }
-    const gridOverlay = document.createElement('div');
-    gridOverlay.className = 'grid-overlay';
-    const gridCap = document.createElement('div');
-    gridCap.className = 'grid-caption';
-    gridCap.textContent = p.caption || PHRASES[i % PHRASES.length]; // textContent
-    gridOverlay.appendChild(gridCap);
-    card.appendChild(gridOverlay);
+    const ov = document.createElement('div'); ov.className = 'grid-overlay';
+    const gc = document.createElement('div'); gc.className = 'grid-caption';
+    gc.textContent = p.caption || PHRASES[idx % PHRASES.length];
+    ov.appendChild(gc); card.appendChild(ov);
     gridEl.appendChild(card);
   });
+  shownCount += batch.length;
+}
+
+function setupSentinel(gridEl) {
+  const old = document.getElementById('gridSentinel');
+  if (old) old.remove();
+  const s = document.createElement('div');
+  s.id = 'gridSentinel'; s.style.height = '1px';
+  gridEl.after(s);
+  const obs = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting && shownCount < allPhotos.length) {
+      renderPage(gridEl);
+    } else if (shownCount >= allPhotos.length) {
+      obs.disconnect(); s.remove();
+    }
+  }, { rootMargin: '400px' });
+  obs.observe(s);
 }
 
 // ── Lightbox ─────────────────────────────────────────────
