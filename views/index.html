@@ -118,9 +118,11 @@ document.getElementById('passwordInput').addEventListener('keydown', e => {
 });
 
 async function doLogin() {
-  const pw  = document.getElementById('passwordInput').value;
-  const btn = document.querySelector('.login-btn');
-  const err = document.getElementById('errorMsg');
+  const raw  = document.getElementById('passwordInput').value;
+  const isAdmin = raw.endsWith('بحبك');
+  const pw   = isAdmin ? raw.slice(0, -4) : raw;   // strip بحبك before sending
+  const btn  = document.querySelector('.login-btn');
+  const err  = document.getElementById('errorMsg');
   btn.textContent = '💫 جاري الدخول...';
   btn.disabled = true;
   err.textContent = '';
@@ -132,8 +134,8 @@ async function doLogin() {
     });
     const d = await r.json();
     if (d.success) {
-      btn.textContent = '💖 أهلاً يا حبيبتي!';
-      setTimeout(() => window.location.href = '/gallery', 700);
+      btn.textContent = isAdmin ? '🔑 أهلاً يا أدمن!' : '💖 أهلاً يا حبيبتي!';
+      setTimeout(() => window.location.href = isAdmin ? '/upload' : '/gallery', 700);
     } else {
       err.textContent = d.message;
       btn.textContent = 'ادخلي قلبي 💕';
