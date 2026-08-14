@@ -9,7 +9,3 @@ services:
         generateValue: true
       - key: LOVE_PASSWORD
         sync: false
-    disk:
-      name: media-storage
-      mountPath: /opt/render/project/src/uploads
-      sizeGB: 1

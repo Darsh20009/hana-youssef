@@ -21,12 +21,11 @@ if (!LOVE_PASSWORD) {
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// On Render the disk is mounted at uploads/, store everything there
-const UPLOADS_DIR = process.env.UPLOADS_DIR || 'uploads';
-const DATA_FILE   = path.join(UPLOADS_DIR, 'photos.json');
+const UPLOADS_DIR = 'uploads';
+const DATA_FILE   = path.join('data', 'photos.json');
 
 // Ensure directories exist
-[UPLOADS_DIR].forEach(d => {
+['uploads', 'data'].forEach(d => {
   if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
 });
 

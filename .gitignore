@@ -1,6 +1,4 @@
 node_modules/
-uploads/
-data/
 .env
 *.log
 .cache/
