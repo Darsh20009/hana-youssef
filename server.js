@@ -19,10 +19,14 @@ if (!LOVE_PASSWORD) {
 }
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
+
+// On Render the disk is mounted at uploads/, store everything there
+const UPLOADS_DIR = process.env.UPLOADS_DIR || 'uploads';
+const DATA_FILE   = path.join(UPLOADS_DIR, 'photos.json');
 
 // Ensure directories exist
-['uploads', 'data'].forEach(d => {
+[UPLOADS_DIR].forEach(d => {
   if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
 });
 
@@ -74,7 +78,7 @@ function requireAuthPage(req, res, next) {
 
 // ── Multer — stores outside public/ ─────────────────────
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads'),
+  destination: (req, file, cb) => cb(null, UPLOADS_DIR),
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
     cb(null, `${Date.now()}_${Math.random().toString(36).substr(2, 8)}${ext}`);
@@ -91,12 +95,11 @@ const upload = multer({
 
 // ── Photo Metadata ───────────────────────────────────────
 function loadPhotos() {
-  const f = 'data/photos.json';
-  if (!fs.existsSync(f)) return [];
-  try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return []; }
+  if (!fs.existsSync(DATA_FILE)) return [];
+  try { return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); } catch { return []; }
 }
 function savePhotos(photos) {
-  fs.writeFileSync('data/photos.json', JSON.stringify(photos, null, 2));
+  fs.writeFileSync(DATA_FILE, JSON.stringify(photos, null, 2));
 }
 
 // ── Public Routes ────────────────────────────────────────

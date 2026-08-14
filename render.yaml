@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: hana-youssef
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: LOVE_PASSWORD
+        sync: false
+    disk:
+      name: media-storage
+      mountPath: /opt/render/project/src/uploads
+      sizeGB: 1

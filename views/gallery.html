@@ -51,7 +51,7 @@
   <div class="music-icon">🎵</div>
   <div class="music-info">
     <div class="music-title" id="songTitle">نور العين — عمرو دياب</div>
-    <div class="music-artist" id="songArtist">أغاني حب مصرية 🎶</div>
+    <div class="music-artist" id="songArtist">اضغطي ▶ لتشغيل الموسيقى 🎶</div>
   </div>
   <div class="music-controls">
     <button class="music-btn" onclick="prevSong()">⏮</button>
@@ -130,7 +130,7 @@ function spawnHeart() {
   document.getElementById('heartsContainer').appendChild(h);
   setTimeout(() => h.remove(), 16000);
 }
-setInterval(spawnHeart, 500);
+setInterval(spawnHeart, 2500);
 
 // ── Counter ─────────────────────────────────────────────
 const START = new Date('2025-11-23T00:00:00');
@@ -150,13 +150,12 @@ tick(); setInterval(tick, 1000);
 
 // ── Phrases ─────────────────────────────────────────────
 const PHRASES = [
-  'أنتِ دنيتي وآخرتي 💕','من غيرك مش عارف أعيش 🌹','عيني اللي بتشوفك جنة ✨',
-  'حبك في دمي يا حياتي 💖','إنتِ أحلى حاجة في حياتي 🌸','بحبك أوي يا هنا 💝',
-  'إنتِ روحي وقلبي 🫀','حياتي بيكِ أجمل 🌺','إنتِ كل حاجة عندي 💞',
-  'معاكِ حياتي كاملة 🕊️','قلبي ملكك للأبد 👑','إنتِ نور عيني يا هنا 🌟',
-  'حبك غير حياتي 🌙','لو الدنيا تتكرر هختارك 💫','إنتِ فرحتي وأملي 🎀',
-  'بفكر فيكِ كل ثانية 🥹','أجمل يوم في حياتي لما قابلتك 🌹','إنتِ الكنز اللي لقيته 💎',
-  'مع بعض للأبد يا هنا 🤝','حبيبتي الأولى والأخيرة 💘'
+  'بحبك أوي يا هنا 💝','حياتي بيكِ أجمل 🌺','قلبي ملكك للأبد 👑',
+  'إنتِ نور عيني يا هنا 🌟','حبك غير حياتي 🌙','لو الدنيا تتكرر هختارك 💫',
+  'إنتِ فرحتي وأملي 🎀','بفكر فيكِ كل ثانية 🥹','إنتِ الكنز اللي لقيته 💎',
+  'مع بعض للأبد يا هنا 🤝','حبيبتي الأولى والأخيرة 💘','أجمل يوم لما قابلتك 🌹',
+  'سعادتي بيكِ 🌸','أحلى حاجة في حياتي إنتِ 🩷','حبيبتي يا هنا 💖',
+  'معاكِ الأيام أحلى 🌼','إنتِ فرحة قلبي 🎀','أكتر واحدة بحبها 🌹'
 ];
 const track = document.getElementById('phrasesTrack');
 [...PHRASES, ...PHRASES].forEach(p => {
@@ -166,48 +165,64 @@ const track = document.getElementById('phrasesTrack');
   track.appendChild(el);
 });
 
-// ── YouTube Music ────────────────────────────────────────
+// ── YouTube Music — initialised on first user click ──────
 const SONGS = [
-  {id:'NnHpVaUSqhk', title:'نور العين', artist:'عمرو دياب'},
-  {id:'RgKAFK5djSk', title:'مش قادر', artist:'تامر حسني'},
-  {id:'JuZ7RNbYBiE', title:'بيتجنن', artist:'تامر حسني'},
-  {id:'M7lc1UVf-VE', title:'إيه اللي بيجمعنا', artist:'محمد منير'},
-  {id:'kHSFpGBFGHY', title:'معاك', artist:'أنغام'},
-  {id:'h7kFpSJHgB4', title:'تعالى', artist:'تامر حسني'},
-  {id:'zAzDkMTQpGQ', title:'وأنا في انتظارك', artist:'عمرو دياب'},
+  {id:'NnHpVaUSqhk', title:'نور العين',        artist:'عمرو دياب'},
+  {id:'Uj1ykZlABCg', title:'تملي معاك',        artist:'عمرو دياب'},
+  {id:'L_jWHffIx5E', title:'Smells Like Teen', artist:'مزيكا'},  // fallback
+  {id:'k5ka6DpnXR0', title:'بتجنن',            artist:'تامر حسني'},
+  {id:'M4s1ZIbGFNs', title:'معاك',             artist:'أنغام'},
+  {id:'f4Mc-NYPHaQ', title:'انت عمري',         artist:'أم كلثوم'},
+  {id:'rYEDA3JcQqw', title:'بحبك',             artist:'حماقي'},
 ];
-let player, currentSong = 0, isPlaying = false;
+let player = null, currentSong = 0, isPlaying = false, playerReady = false;
 
-function onYouTubeIframeAPIReady() {
+function initPlayer() {
+  if (player) return; // already created
+  document.getElementById('playBtn').textContent = '⏳';
   player = new YT.Player('ytPlayer', {
     height: '1', width: '1',
     videoId: SONGS[currentSong].id,
-    playerVars: { autoplay: 1, controls: 0, mute: 0 },
+    playerVars: { autoplay: 1, controls: 0, mute: 0, rel: 0 },
     events: {
-      onReady: e => { e.target.playVideo(); isPlaying = true; document.getElementById('playBtn').textContent = '⏸'; updateSongInfo(); },
-      onStateChange: e => { if (e.data === YT.PlayerState.ENDED) nextSong(); }
+      onReady: e => {
+        playerReady = true;
+        e.target.playVideo();
+        isPlaying = true;
+        document.getElementById('playBtn').textContent = '⏸';
+        updateSongInfo();
+      },
+      onStateChange: e => {
+        if (e.data === YT.PlayerState.ENDED) nextSong();
+        if (e.data === YT.PlayerState.PLAYING) { isPlaying = true; document.getElementById('playBtn').textContent = '⏸'; }
+        if (e.data === YT.PlayerState.PAUSED)  { isPlaying = false; document.getElementById('playBtn').textContent = '▶'; }
+      },
+      onError: () => { setTimeout(nextSong, 1000); } // skip broken videos
     }
   });
 }
+function onYouTubeIframeAPIReady() { /* loaded — wait for user click */ }
+
 function updateSongInfo() {
   const s = SONGS[currentSong];
-  document.getElementById('songTitle').textContent = s.title + ' — ' + s.artist;
-  document.getElementById('songArtist').textContent = 'أغاني حب مصرية 🎶';
+  document.getElementById('songTitle').textContent  = s.title + ' — ' + s.artist;
+  document.getElementById('songArtist').textContent = 'أغاني مصرية 🎶';
 }
 function togglePlay() {
-  if (!player) return;
-  if (isPlaying) { player.pauseVideo(); isPlaying = false; document.getElementById('playBtn').textContent = '▶'; }
-  else { player.playVideo(); isPlaying = true; document.getElementById('playBtn').textContent = '⏸'; }
+  if (!player) { initPlayer(); return; }
+  if (!playerReady) return;
+  if (isPlaying) { player.pauseVideo(); }
+  else           { player.playVideo(); }
 }
 function nextSong() {
   currentSong = (currentSong + 1) % SONGS.length;
-  if (player) { player.loadVideoById(SONGS[currentSong].id); isPlaying = true; document.getElementById('playBtn').textContent = '⏸'; }
   updateSongInfo();
+  if (player && playerReady) { player.loadVideoById(SONGS[currentSong].id); isPlaying = true; document.getElementById('playBtn').textContent = '⏸'; }
 }
 function prevSong() {
   currentSong = (currentSong - 1 + SONGS.length) % SONGS.length;
-  if (player) { player.loadVideoById(SONGS[currentSong].id); isPlaying = true; document.getElementById('playBtn').textContent = '⏸'; }
   updateSongInfo();
+  if (player && playerReady) { player.loadVideoById(SONGS[currentSong].id); isPlaying = true; document.getElementById('playBtn').textContent = '⏸'; }
 }
 
 // ── Gallery — safe DOM building (no innerHTML for user data) ─

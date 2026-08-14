@@ -30,8 +30,9 @@
     <div class="card-title">شفرة الدخول مخبية في كلب مكا</div>
     <div class="card-hint">ادخلي الشفرة اللي في قلبك</div>
 
-    <div class="input-wrap">
-      <input type="password" id="passwordInput" placeholder="ادخلي شفرة قلبك هنا..." autocomplete="off" autofocus/>
+    <div class="input-wrap" style="position:relative;">
+      <input type="password" id="passwordInput" placeholder="ادخلي شفرة قلبك هنا..." autocomplete="off" autofocus style="padding-left:50px;"/>
+      <button onclick="togglePw()" id="eyeBtn" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:22px;line-height:1;color:#d4789c;" title="أظهر/اخفِ">🙈</button>
     </div>
 
     <div class="hint-text">
@@ -69,7 +70,7 @@ function spawnPetal() {
   document.getElementById('heartsContainer').appendChild(h);
   setTimeout(() => h.remove(), (dur + 3) * 1000);
 }
-setInterval(spawnPetal, 600);
+setInterval(spawnPetal, 2200);
 
 // Counter
 const START = new Date('2025-11-23T00:00:00');
@@ -96,6 +97,14 @@ let logoClicks = 0;
 function logoClick() {
   logoClicks++;
   if (logoClicks >= 5) { window.location.href = '/upload'; logoClicks = 0; }
+}
+
+// Show/hide password
+function togglePw() {
+  const inp = document.getElementById('passwordInput');
+  const btn = document.getElementById('eyeBtn');
+  if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙉'; }
+  else { inp.type = 'password'; btn.textContent = '🙈'; }
 }
 
 // Login
