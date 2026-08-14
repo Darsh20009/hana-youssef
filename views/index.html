@@ -33,7 +33,6 @@
   <div class="day-counter-mini" id="miniCounter">جاري الحساب...</div>
 
   <div class="login-card">
-    <div class="dog-hint">🐾🐕🔐</div>
     <div class="card-title">شفرة الدخول مخبية في كلب مكا</div>
     <div class="card-hint">ادخلي الشفرة اللي في قلبك</div>
 
@@ -43,15 +42,14 @@
     </div>
 
     <div class="hint-text">
-      تلميح: <span>يوم ميلاد أجمل بنت في العالم</span> 🎂
+      تلميح: <span>يوم ميلاد أجمل بنت في العالم</span>
     </div>
 
     <button class="login-btn" onclick="doLogin()">ادخلي قلبي 💕</button>
     <div class="error-msg" id="errorMsg"></div>
   </div>
 
-  <div class="camels-deco">🐪 🌸 🐪 🌸 🐪</div>
-  <div class="domain-badge">hana-youssef.website • بحبك أوي يا هنا ❤️</div>
+  <div class="domain-badge">hana-youssef.website • بحبك أوي يا هنا</div>
 </div>
 
 <style>
@@ -87,7 +85,7 @@ function updateCounter() {
   const h = Math.floor((diff % 86400000) / 3600000);
   const m = Math.floor((diff % 3600000) / 60000);
   const s = Math.floor((diff % 60000) / 1000);
-  document.getElementById('miniCounter').textContent = `💖 معاكِ ${d} يوم و${h} ساعة و${m} دقيقة و${s} ثانية 💖`;
+  document.getElementById('miniCounter').textContent = `معاكِ ${d} يوم و${h} ساعة و${m} دقيقة و${s} ثانية`;
 }
 updateCounter(); setInterval(updateCounter, 1000);
 

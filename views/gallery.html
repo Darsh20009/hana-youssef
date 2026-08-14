@@ -58,7 +58,7 @@
   <div class="music-icon">🎵</div>
   <div class="music-info">
     <div class="music-title" id="songTitle">نور العين — عمرو دياب</div>
-    <div class="music-artist" id="songArtist">اضغطي ▶ لتشغيل الموسيقى 🎶</div>
+    <div class="music-artist" id="songArtist">اضغط ▶ لتشغيل الموسيقى</div>
   </div>
   <div class="music-controls">
     <button class="music-btn" onclick="prevSong()">⏮</button>
@@ -70,7 +70,7 @@
 
 <!-- Gallery -->
 <section class="gallery-section">
-  <div class="gallery-section-title">🐪 ألبومنا الجميل 🌟</div>
+  <div class="gallery-section-title">ألبومنا</div>
   <div class="album-tabs" id="albumTabs">
     <button class="album-tab active" onclick="filterAlbum('all',this)">📸 الكل <span class="album-count" id="cnt-all">0</span></button>
     <button class="album-tab" onclick="filterAlbum('videos',this)">🎬 فيديوهات <span class="album-count" id="cnt-videos">0</span></button>
@@ -90,8 +90,8 @@
 </section>
 
 <div class="love-bar">
-  <div class="big-love">❤️ بحبك أوي يا هنا يوسف ❤️</div>
-  <div style="margin-top:12px;font-size:16px;color:rgba(255,255,255,.5);">🐪 معاكِ حياتي أحلى 🐪</div>
+  <div class="big-love">بحبك أوي يا هنا يوسف</div>
+  <div style="margin-top:12px;font-size:16px;color:rgba(255,255,255,.5);">معاكِ حياتي أحلى</div>
   <div class="love-domain">hana-youssef.website • كل يوم بحبك أكتر</div>
 </div>
 
@@ -99,11 +99,11 @@
 <div class="modal-overlay" id="qrModal" onclick="closeQR(event)">
   <div class="modal-card">
     <img src="/assets/logo.png" style="width:70px;height:70px;border-radius:50%;margin:0 auto 12px;border:2px solid #ff6b9d;display:block;"/>
-    <h3>📲 باركود هنا ويوسف</h3>
+    <h3>باركود هنا ويوسف</h3>
     <img id="qrImg" src="" alt="QR Code" style="border:3px solid #ff6b9d;border-radius:12px;display:block;margin:0 auto 16px;width:220px;height:220px;"/>
-    <p>امسح الباركود وادخل موقعنا يا حبيبتي 💕</p>
+    <p>امسح الباركود وادخل موقعنا يا حبيبتي</p>
     <p style="font-size:12px;color:#ff6b9d;">hana-youssef.website</p>
-    <button class="modal-close" onclick="closeQR()">💖 تمام</button>
+    <button class="modal-close" onclick="closeQR()">تمام</button>
   </div>
 </div>
 
@@ -134,7 +134,7 @@ fetch('/api/check-auth').then(r => r.json()).then(d => {
 });
 
 // ── Floating Hearts ─────────────────────────────────────
-const emojis = ['❤️','💕','💖','💗','💝','💞','🌹','✨','💫','🌸','🐪','🌟'];
+const emojis = ['❤️','💕','💖','💗','💝','💞','🌹','✨','💫','🌸'];
 function spawnHeart() {
   const h = document.createElement('div');
   h.className = 'heart';
@@ -163,12 +163,12 @@ tick(); setInterval(tick, 1000);
 
 // ── Phrases ─────────────────────────────────────────────
 const PHRASES = [
-  'بحبك أوي يا هنا 💝','حياتي بيكِ أجمل 🌺','قلبي ملكك للأبد 👑',
-  'إنتِ نور عيني يا هنا 🌟','حبك غير حياتي 🌙','لو الدنيا تتكرر هختارك 💫',
-  'إنتِ فرحتي وأملي 🎀','بفكر فيكِ كل ثانية 🥹','إنتِ الكنز اللي لقيته 💎',
-  'مع بعض للأبد يا هنا 🤝','حبيبتي الأولى والأخيرة 💘','أجمل يوم لما قابلتك 🌹',
-  'سعادتي بيكِ 🌸','أحلى حاجة في حياتي إنتِ 🩷','حبيبتي يا هنا 💖',
-  'معاكِ الأيام أحلى 🌼','إنتِ فرحة قلبي 🎀','أكتر واحدة بحبها 🌹'
+  'بحبك أوي يا هنا','حياتي بيكِ أجمل','قلبي ملكك للأبد',
+  'إنتِ نور عيني يا هنا','حبك غير حياتي','لو الدنيا تتكرر هختارك',
+  'إنتِ فرحتي وأملي','بفكر فيكِ كل ثانية','إنتِ الكنز اللي لقيته',
+  'مع بعض للأبد يا هنا','حبيبتي الأولى والأخيرة','أجمل يوم لما قابلتك',
+  'سعادتي بيكِ','أحلى حاجة في حياتي إنتِ','حبيبتي يا هنا',
+  'معاكِ الأيام أحلى','إنتِ فرحة قلبي','أكتر واحدة بحبها'
 ];
 const track = document.getElementById('phrasesTrack');
 [...PHRASES, ...PHRASES].forEach(p => {
@@ -183,10 +183,10 @@ const audioEl = document.getElementById('audioPlayer');
 audioEl.src = '/media/Amr_Diab_-_Khalik_Maaya___\u0639\u0645\u0631\u0648_\u062f\u064a\u0627\u0628_-_\u062e\u0644\u064a\u0643_\u0645\u0639\u0627\u064a\u0627_1786738867805.mp3';
 
 document.getElementById('songTitle').textContent  = 'خليك معايا — عمرو دياب';
-document.getElementById('songArtist').textContent = 'اضغط ▶ لتشغيل الموسيقى 🎶';
+document.getElementById('songArtist').textContent = 'اضغط ▶ لتشغيل الموسيقى';
 
-audioEl.addEventListener('play',  () => { document.getElementById('playBtn').textContent = '⏸'; document.getElementById('songArtist').textContent = '🎵 شغّالة...'; });
-audioEl.addEventListener('pause', () => { document.getElementById('playBtn').textContent = '▶'; document.getElementById('songArtist').textContent = 'اضغط ▶ للاستمرار 🎶'; });
+audioEl.addEventListener('play',  () => { document.getElementById('playBtn').textContent = '⏸'; document.getElementById('songArtist').textContent = 'شغّالة...'; });
+audioEl.addEventListener('pause', () => { document.getElementById('playBtn').textContent = '▶'; document.getElementById('songArtist').textContent = 'اضغط ▶ للاستمرار'; });
 
 function togglePlay() {
   if (audioEl.paused) audioEl.play().catch(()=>{});
@@ -196,7 +196,7 @@ function nextSong()  { audioEl.currentTime = 0; audioEl.play().catch(()=>{}); }
 function prevSong()  { audioEl.currentTime = 0; }
 
 // ── Gallery ───────────────────────────────────────────────
-const CAMEL = ['🐪','🌟','🌹','💕','✨','🌙','💎'];
+const HEARTS = ['❤️','💕','💖','🌹','✨','🌙','💎'];
 let allPhotos = [], displayPhotos = [], shownCount = 0, currentAlbum = 'all';
 const PAGE = 24;
 
@@ -212,7 +212,7 @@ function filterAlbum(album, el) {
   if (displayPhotos.length === 0) {
     const empty = document.createElement('div');
     empty.style.cssText = 'text-align:center;padding:60px 20px;color:rgba(255,107,157,.6);font-size:18px;font-weight:700;width:100%;';
-    empty.textContent = 'مفيش صور هنا لسه — ارفع صور وحدّد الألبوم من صفحة الرفع 💕';
+    empty.textContent = 'مفيش صور هنا لسه — ارفع صور وحدّد الألبوم من صفحة الرفع';
     gridEl.appendChild(empty);
     return;
   }
@@ -289,9 +289,9 @@ function renderGallery() {
     overlay.appendChild(phraseEl);
     if (p.caption) { const c = document.createElement('div'); c.className = 'caption'; c.textContent = p.caption; overlay.appendChild(c); }
     card.appendChild(overlay);
-    const camelEl = document.createElement('div'); camelEl.className = 'camel';
-    camelEl.textContent = CAMEL[i % CAMEL.length];
-    card.appendChild(camelEl);
+    const heartEl = document.createElement('div'); heartEl.className = 'camel';
+    heartEl.textContent = HEARTS[i % HEARTS.length];
+    card.appendChild(heartEl);
     trackEl.appendChild(card);
   });
   if (trackPhotos.length > 1) trackEl.classList.add('animate');
