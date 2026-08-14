@@ -152,20 +152,26 @@ app.post('/api/upload', requireAuth, upload.array('photos', 200), (req, res) => 
   if (!req.files || req.files.length === 0)
     return res.status(400).json({ success: false, message: 'مفيش ملفات اتحملت' });
 
-  let captions = {};
+  let captions = {}, albums = {};
   try {
     if (req.body.captions) captions = JSON.parse(req.body.captions);
     if (typeof captions !== 'object' || Array.isArray(captions)) captions = {};
   } catch { captions = {}; }
+  try {
+    if (req.body.albums) albums = JSON.parse(req.body.albums);
+    if (typeof albums !== 'object' || Array.isArray(albums)) albums = {};
+  } catch { albums = {}; }
 
   const photos = loadPhotos();
   const added = req.files.map((f, i) => {
+    const isVideo = /\.(mp4|mov|avi)$/i.test(f.filename);
     const entry = {
       id: `${Date.now()}_${i}`,
       filename: f.filename,
       path: '/media/' + f.filename,
-      type: /\.(mp4|mov|avi)$/i.test(f.filename) ? 'video' : 'image',
+      type: isVideo ? 'video' : 'image',
       caption: String(captions[i] || '').slice(0, 200),
+      album: String(albums[i] || (isVideo ? 'videos' : '')).slice(0, 50),
       uploadedAt: new Date().toISOString()
     };
     photos.push(entry);
@@ -173,6 +179,17 @@ app.post('/api/upload', requireAuth, upload.array('photos', 200), (req, res) => 
   });
   savePhotos(photos);
   res.json({ success: true, files: added });
+});
+
+app.patch('/api/photos/:filename', requireAuth, (req, res) => {
+  const name = path.basename(req.params.filename);
+  const photos = loadPhotos();
+  const photo  = photos.find(p => p.filename === name);
+  if (!photo) return res.status(404).json({ success: false });
+  if (req.body.album   !== undefined) photo.album   = String(req.body.album).slice(0, 50);
+  if (req.body.caption !== undefined) photo.caption = String(req.body.caption).slice(0, 200);
+  savePhotos(photos);
+  res.json({ success: true });
 });
 
 app.get('/api/photos', requireAuth, (req, res) => {

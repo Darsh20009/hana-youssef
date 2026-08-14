@@ -500,6 +500,29 @@ body {
   .login-card { padding: 28px 20px; }
 }
 
+/* ── Album Tabs ───────────────────────────────────────── */
+.album-tabs {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  justify-content: center; padding: 20px 20px 4px;
+}
+.album-tab {
+  background: rgba(255,107,157,.12);
+  border: 2px solid rgba(255,107,157,.25);
+  border-radius: 50px; padding: 9px 22px;
+  font-family: 'Tajawal', sans-serif; font-size: 15px; font-weight: 700;
+  color: #c05080; cursor: pointer; transition: all .2s; white-space: nowrap;
+}
+.album-tab:hover { background: rgba(255,107,157,.22); transform: scale(1.04); }
+.album-tab.active {
+  background: linear-gradient(135deg,#ff6b9d,#ff8fab);
+  border-color: #ff6b9d; color: #fff;
+  box-shadow: 0 4px 14px rgba(255,107,157,.4);
+}
+.album-count {
+  display: inline-block; background: rgba(255,255,255,.25);
+  border-radius: 20px; font-size: 11px; padding: 1px 7px; margin-right: 4px;
+}
+
 /* ── Birthday Surprise Overlay ────────────────────────── */
 .bday-overlay {
   position: fixed; inset: 0; z-index: 9999;

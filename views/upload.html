@@ -89,6 +89,23 @@ async function loadExisting() {
     cap.textContent = p.caption || 'بدون تعليق';
     card.appendChild(cap);
 
+    // Album badge / selector
+    const albumSel = document.createElement('select');
+    albumSel.style.cssText = 'width:100%;padding:4px 6px;font-size:11px;border:none;background:rgba(255,107,157,.15);color:#c05080;font-family:Tajawal,sans-serif;font-weight:700;border-top:1px solid rgba(255,107,157,.2);';
+    [{v:'',t:'📸 الكل'},{v:'together',t:'💑 مع بعض'},{v:'her',t:'🌸 صورها'},{v:'his',t:'😎 صوري'},{v:'videos',t:'🎬 فيديوهات'}].forEach(o => {
+      const opt = document.createElement('option');
+      opt.value = o.v; opt.textContent = o.t;
+      if ((p.album||'') === o.v) opt.selected = true;
+      albumSel.appendChild(opt);
+    });
+    albumSel.addEventListener('change', () => {
+      fetch(`/api/photos/${encodeURIComponent(p.filename)}`, {
+        method: 'PATCH', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ album: albumSel.value })
+      });
+    });
+    card.appendChild(albumSel);
+
     // Delete button
     const btn = document.createElement('button');
     btn.textContent = '✕';
@@ -147,6 +164,25 @@ function renderPreviews() {
     input.maxLength = 200;
     item.appendChild(input);
 
+    // Album selector
+    const sel = document.createElement('select');
+    sel.id = `album_${i}`;
+    sel.style.cssText = 'width:100%;margin-top:6px;padding:7px 10px;border-radius:8px;border:1px solid rgba(255,107,157,.4);background:rgba(255,107,157,.1);color:#c05080;font-family:Tajawal,sans-serif;font-size:13px;font-weight:700;';
+    const albumOpts = [
+      {v:'', t:'📸 الكل (بدون ألبوم)'},
+      {v:'together', t:'💑 مع بعض'},
+      {v:'her', t:'🌸 صورها'},
+      {v:'his', t:'😎 صوري'},
+    ];
+    if (file.type.startsWith('video/')) albumOpts.push({v:'videos', t:'🎬 فيديوهات'});
+    albumOpts.forEach(o => {
+      const opt = document.createElement('option');
+      opt.value = o.v; opt.textContent = o.t;
+      if (file.type.startsWith('video/') && o.v === 'videos') opt.selected = true;
+      sel.appendChild(opt);
+    });
+    item.appendChild(sel);
+
     // Remove button
     const removeBtn = document.createElement('button');
     removeBtn.className = 'preview-remove';
@@ -170,15 +206,18 @@ async function doUpload() {
   pb.style.display = 'block';
   msg.textContent = '';
 
-  const captions = {};
+  const captions = {}, albums = {};
   selectedFiles.forEach((_, i) => {
     const inp = document.getElementById(`caption_${i}`);
+    const sel = document.getElementById(`album_${i}`);
     captions[i] = inp ? inp.value.slice(0, 200) : '';
+    albums[i]   = sel ? sel.value : '';
   });
 
   const formData = new FormData();
   selectedFiles.forEach(f => formData.append('photos', f));
   formData.append('captions', JSON.stringify(captions));
+  formData.append('albums',   JSON.stringify(albums));
 
   let prog = 0;
   const iv = setInterval(() => { prog = Math.min(prog + 5, 85); pf.style.width = prog + '%'; }, 200);

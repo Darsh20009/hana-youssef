@@ -71,6 +71,13 @@
 <!-- Gallery -->
 <section class="gallery-section">
   <div class="gallery-section-title">🐪 ألبومنا الجميل 🌟</div>
+  <div class="album-tabs" id="albumTabs">
+    <button class="album-tab active" onclick="filterAlbum('all',this)">📸 الكل <span class="album-count" id="cnt-all">0</span></button>
+    <button class="album-tab" onclick="filterAlbum('videos',this)">🎬 فيديوهات <span class="album-count" id="cnt-videos">0</span></button>
+    <button class="album-tab" onclick="filterAlbum('together',this)">💑 مع بعض <span class="album-count" id="cnt-together">0</span></button>
+    <button class="album-tab" onclick="filterAlbum('her',this)">🌸 صورها <span class="album-count" id="cnt-her">0</span></button>
+    <button class="album-tab" onclick="filterAlbum('his',this)">😎 صوري <span class="album-count" id="cnt-his">0</span></button>
+  </div>
   <div id="noPhotos" class="no-photos" style="display:none">
     <div class="no-photos-icon">📸</div>
     <h3>الألبوم فاضي لسه يا حبيبتي</h3>
@@ -190,8 +197,36 @@ function prevSong()  { audioEl.currentTime = 0; }
 
 // ── Gallery ───────────────────────────────────────────────
 const CAMEL = ['🐪','🌟','🌹','💕','✨','🌙','💎'];
-let allPhotos = [], shownCount = 0;
+let allPhotos = [], displayPhotos = [], shownCount = 0, currentAlbum = 'all';
 const PAGE = 24;
+
+function filterAlbum(album, el) {
+  currentAlbum = album;
+  document.querySelectorAll('.album-tab').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  if (album === 'all')    displayPhotos = [...allPhotos];
+  else if (album === 'videos') displayPhotos = allPhotos.filter(p => p.type === 'video');
+  else                    displayPhotos = allPhotos.filter(p => p.album === album);
+  const gridEl = document.getElementById('galleryGrid');
+  gridEl.innerHTML = ''; shownCount = 0;
+  if (displayPhotos.length === 0) {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'text-align:center;padding:60px 20px;color:rgba(255,107,157,.6);font-size:18px;font-weight:700;width:100%;';
+    empty.textContent = 'مفيش صور هنا لسه — ارفع صور وحدّد الألبوم من صفحة الرفع 💕';
+    gridEl.appendChild(empty);
+    return;
+  }
+  renderPage(gridEl);
+  setupSentinel(gridEl);
+}
+
+function updateCounts() {
+  document.getElementById('cnt-all').textContent     = allPhotos.length;
+  document.getElementById('cnt-videos').textContent  = allPhotos.filter(p=>p.type==='video').length;
+  document.getElementById('cnt-together').textContent= allPhotos.filter(p=>p.album==='together').length;
+  document.getElementById('cnt-her').textContent     = allPhotos.filter(p=>p.album==='her').length;
+  document.getElementById('cnt-his').textContent     = allPhotos.filter(p=>p.album==='his').length;
+}
 
 // Lazy video observer — only loads src when card enters viewport
 const videoObserver = new IntersectionObserver(entries => {
@@ -230,6 +265,8 @@ function renderGallery() {
   const gridEl  = document.getElementById('galleryGrid');
   trackEl.innerHTML = ''; gridEl.innerHTML = '';
   shownCount = 0;
+  displayPhotos = [...allPhotos];
+  updateCounts();
 
   if (allPhotos.length === 0) {
     document.getElementById('noPhotos').style.display = 'block';
@@ -265,7 +302,7 @@ function renderGallery() {
 }
 
 function renderPage(gridEl) {
-  const batch = allPhotos.slice(shownCount, shownCount + PAGE);
+  const batch = displayPhotos.slice(shownCount, shownCount + PAGE);
   batch.forEach((p, i) => {
     const idx = shownCount + i;
     const card = document.createElement('div');
@@ -292,9 +329,9 @@ function setupSentinel(gridEl) {
   s.id = 'gridSentinel'; s.style.height = '1px';
   gridEl.after(s);
   const obs = new IntersectionObserver(entries => {
-    if (entries[0].isIntersecting && shownCount < allPhotos.length) {
+    if (entries[0].isIntersecting && shownCount < displayPhotos.length) {
       renderPage(gridEl);
-    } else if (shownCount >= allPhotos.length) {
+    } else if (shownCount >= displayPhotos.length) {
       obs.disconnect(); s.remove();
     }
   }, { rootMargin: '400px' });
