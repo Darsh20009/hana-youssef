@@ -204,7 +204,7 @@ function filterAlbum(album, el) {
   currentAlbum = album;
   document.querySelectorAll('.album-tab').forEach(t => t.classList.remove('active'));
   if (el) el.classList.add('active');
-  if (album === 'all')    displayPhotos = [...allPhotos];
+  if (album === 'all')    displayPhotos = [...allPhotos.filter(p=>p.type!=='video'), ...allPhotos.filter(p=>p.type==='video')];
   else if (album === 'videos') displayPhotos = allPhotos.filter(p => p.type === 'video');
   else                    displayPhotos = allPhotos.filter(p => p.album === album);
   const gridEl = document.getElementById('galleryGrid');
