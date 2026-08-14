@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>📸 رفع صور ألبومنا</title>
+  <link rel="icon" href="/assets/logo.png"/>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/love.css"/>
+</head>
+<body class="upload-page">
+<div style="max-width:720px;margin:0 auto;">
+  <div class="upload-header">
+    <img src="/assets/logo.png" alt="Logo"/>
+    <div>
+      <h1>📸 ألبومنا الجميل</h1>
+      <div style="font-size:13px;color:rgba(255,255,255,.4);">ارفعي الصور والفيديوهات يا حبيبتي 💕</div>
+    </div>
+  </div>
+
+  <!-- Existing Photos -->
+  <div id="existingSection" style="margin-bottom:30px;">
+    <h3 style="color:#ff6b9d;font-size:18px;margin-bottom:16px;">📂 الصور الموجودة</h3>
+    <div id="existingGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;"></div>
+  </div>
+
+  <div class="upload-card">
+    <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+      <div class="drop-zone-icon">🖼️</div>
+      <h3>اسحبي الصور هنا أو اضغطي للاختيار</h3>
+      <p>صور وفيديوهات — JPG, PNG, GIF, MP4, MOV (حتى 200MB لكل ملف)</p>
+    </div>
+    <input type="file" id="fileInput" multiple accept="image/*,video/*" style="display:none" onchange="handleFiles(this.files)"/>
+    <div class="preview-grid" id="previewGrid"></div>
+    <button class="upload-submit" id="uploadBtn" onclick="doUpload()" style="display:none">✨ ارفعي الصور للألبوم</button>
+    <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="upload-msg" id="uploadMsg"></div>
+  </div>
+
+  <div style="text-align:center;margin-top:20px;">
+    <a href="/gallery" class="back-link">← رجوع لألبومنا 💕</a>
+  </div>
+</div>
+
+<script>
+// Auth check
+fetch('/api/check-auth').then(r=>r.json()).then(d=>{
+  if(!d.authenticated) window.location.href='/';
+});
+
+let selectedFiles = [];
+
+async function loadExisting() {
+  const r = await fetch('/api/photos');
+  const d = await r.json();
+  const grid = document.getElementById('existingGrid');
+  const section = document.getElementById('existingSection');
+  if (!d.photos || d.photos.length === 0) { section.style.display = 'none'; return; }
+
+  grid.innerHTML = '';
+  d.photos.forEach(p => {
+    const card = document.createElement('div');
+    card.style.cssText = 'position:relative;border-radius:10px;overflow:hidden;border:1px solid rgba(255,107,157,.3);';
+
+    // Media element
+    let mediaEl;
+    if (p.type === 'video') {
+      mediaEl = document.createElement('video');
+      mediaEl.src = p.path;
+      mediaEl.style.cssText = 'width:100%;height:100px;object-fit:cover;display:block;';
+      mediaEl.muted = true;
+    } else {
+      mediaEl = document.createElement('img');
+      mediaEl.src = p.path;
+      mediaEl.style.cssText = 'width:100%;height:100px;object-fit:cover;display:block;';
+      mediaEl.loading = 'lazy';
+      mediaEl.alt = 'صورة';
+    }
+    card.appendChild(mediaEl);
+
+    // Caption label — textContent only (no XSS)
+    const cap = document.createElement('div');
+    cap.style.cssText = 'padding:6px 8px;background:rgba(0,0,0,.5);font-size:11px;color:rgba(255,255,255,.7);word-break:break-word;';
+    cap.textContent = p.caption || 'بدون تعليق';
+    card.appendChild(cap);
+
+    // Delete button
+    const btn = document.createElement('button');
+    btn.textContent = '✕';
+    btn.style.cssText = 'position:absolute;top:4px;left:4px;background:rgba(255,0,0,.7);border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;color:white;font-size:12px;line-height:22px;text-align:center;';
+    btn.addEventListener('click', () => deletePhoto(p.filename, card));
+    card.appendChild(btn);
+
+    grid.appendChild(card);
+  });
+}
+
+async function deletePhoto(filename, card) {
+  if (!confirm('تمسحي الصورة دي؟')) return;
+  const r = await fetch(`/api/photos/${encodeURIComponent(filename)}`, { method: 'DELETE' });
+  const d = await r.json();
+  if (d.success) card.remove();
+}
+
+// Drop Zone
+const dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); handleFiles(e.dataTransfer.files); });
+
+function handleFiles(files) {
+  selectedFiles = [...selectedFiles, ...Array.from(files)];
+  renderPreviews();
+}
+
+function renderPreviews() {
+  const grid = document.getElementById('previewGrid');
+  grid.innerHTML = '';
+  selectedFiles.forEach((file, i) => {
+    const item = document.createElement('div');
+    item.className = 'preview-item';
+
+    const url = URL.createObjectURL(file);
+    let mediaEl;
+    if (file.type.startsWith('video/')) {
+      mediaEl = document.createElement('video');
+      mediaEl.src = url;
+      mediaEl.style.cssText = 'width:100%;height:140px;object-fit:cover;display:block;';
+      mediaEl.muted = true;
+    } else {
+      mediaEl = document.createElement('img');
+      mediaEl.src = url;
+      mediaEl.style.cssText = 'width:100%;height:140px;object-fit:cover;display:block;';
+    }
+    item.appendChild(mediaEl);
+
+    // Caption input
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'اكتبي تعليق على الصورة...';
+    input.id = `caption_${i}`;
+    input.maxLength = 200;
+    item.appendChild(input);
+
+    // Remove button
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'preview-remove';
+    removeBtn.textContent = '✕';
+    removeBtn.addEventListener('click', () => { selectedFiles.splice(i, 1); renderPreviews(); });
+    item.appendChild(removeBtn);
+
+    grid.appendChild(item);
+  });
+  document.getElementById('uploadBtn').style.display = selectedFiles.length > 0 ? 'block' : 'none';
+}
+
+async function doUpload() {
+  if (selectedFiles.length === 0) return;
+  const btn = document.getElementById('uploadBtn');
+  const pb  = document.getElementById('progressBar');
+  const pf  = document.getElementById('progressFill');
+  const msg = document.getElementById('uploadMsg');
+  btn.disabled = true;
+  btn.textContent = '⏳ جاري الرفع...';
+  pb.style.display = 'block';
+  msg.textContent = '';
+
+  const captions = {};
+  selectedFiles.forEach((_, i) => {
+    const inp = document.getElementById(`caption_${i}`);
+    captions[i] = inp ? inp.value.slice(0, 200) : '';
+  });
+
+  const formData = new FormData();
+  selectedFiles.forEach(f => formData.append('photos', f));
+  formData.append('captions', JSON.stringify(captions));
+
+  let prog = 0;
+  const iv = setInterval(() => { prog = Math.min(prog + 5, 85); pf.style.width = prog + '%'; }, 200);
+
+  try {
+    const r = await fetch('/api/upload', { method: 'POST', body: formData });
+    const d = await r.json();
+    clearInterval(iv); pf.style.width = '100%';
+    if (d.success) {
+      msg.className = 'upload-msg success';
+      msg.textContent = `✅ اتحملت ${d.files.length} صورة/فيديو بنجاح! 💕`;
+      selectedFiles = [];
+      renderPreviews();
+      setTimeout(loadExisting, 500);
+    } else {
+      msg.className = 'upload-msg error';
+      msg.textContent = d.message || 'في مشكلة في الرفع 😢';
+    }
+  } catch {
+    clearInterval(iv);
+    msg.className = 'upload-msg error';
+    msg.textContent = 'في مشكلة في الاتصال 😢';
+  }
+  btn.disabled = false;
+  btn.textContent = '✨ ارفعي الصور للألبوم';
+  setTimeout(() => { pb.style.display = 'none'; pf.style.width = '0%'; }, 2000);
+}
+
+loadExisting();
+</script>
+</body>
+</html>

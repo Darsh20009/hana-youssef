@@ -1,5 +1,30 @@
+modules = ["nodejs-24", "python-base-3.13"]
 [nix]
 channel = "stable-25_05"
 
 [agent]
 expertMode = true
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Love Website"
+
+[[workflows.workflow]]
+name = "Love Website"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node server.js"
+
+[[ports]]
+localPort = 5000
+externalPort = 80

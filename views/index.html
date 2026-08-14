@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>💕 قلبي ملكك يا هنا</title>
+  <link rel="icon" href="/assets/logo.png"/>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/love.css"/>
+</head>
+<body>
+
+<!-- Floating petals/hearts -->
+<div id="heartsContainer" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden;z-index:0;"></div>
+
+<div class="login-page-bg" style="position:relative;z-index:1;">
+
+  <div class="logo-circle" onclick="logoClick()">
+    <img src="/assets/logo.png" alt="هنا ويوسف"/>
+  </div>
+  <div class="site-title">hana-youssef.website</div>
+
+  <div class="main-title">قلبي ملكك يا هنا 💖</div>
+  <div class="sub-title">ادخلي قلبك الصغير يا حبيبتي</div>
+
+  <div class="day-counter-mini" id="miniCounter">جاري الحساب...</div>
+
+  <div class="login-card">
+    <div class="dog-hint">🐾🐕🔐</div>
+    <div class="card-title">شفرة الدخول مخبية في كلب مكا</div>
+    <div class="card-hint">ادخلي الشفرة اللي في قلبك</div>
+
+    <div class="input-wrap">
+      <input type="password" id="passwordInput" placeholder="ادخلي شفرة قلبك هنا..." autocomplete="off" autofocus/>
+    </div>
+
+    <div class="hint-text">
+      تلميح: <span>يوم ميلاد أجمل بنت في العالم</span> 🎂
+    </div>
+
+    <button class="login-btn" onclick="doLogin()">ادخلي قلبي 💕</button>
+    <div class="error-msg" id="errorMsg"></div>
+  </div>
+
+  <div class="camels-deco">🐪 🌸 🐪 🌸 🐪</div>
+  <div class="domain-badge">hana-youssef.website • بحبك أوي يا هنا ❤️</div>
+</div>
+
+<style>
+.heart-petal {
+  position: absolute;
+  bottom: -40px;
+  animation: floatUp linear infinite;
+  opacity: 0;
+  pointer-events: none;
+}
+</style>
+
+<script>
+// Floating soft hearts/petals
+const petals = ['🌸','💕','🌷','💗','🌺','✿','💖','🩷','🌹'];
+function spawnPetal() {
+  const h = document.createElement('div');
+  h.className = 'heart-petal';
+  h.textContent = petals[Math.floor(Math.random() * petals.length)];
+  const sz = 12 + Math.random() * 18;
+  const dur = 8 + Math.random() * 10;
+  h.style.cssText = `left:${Math.random()*100}%;font-size:${sz}px;animation-duration:${dur}s;animation-delay:${Math.random()*3}s`;
+  document.getElementById('heartsContainer').appendChild(h);
+  setTimeout(() => h.remove(), (dur + 3) * 1000);
+}
+setInterval(spawnPetal, 600);
+
+// Counter
+const START = new Date('2025-11-23T00:00:00');
+function updateCounter() {
+  const diff = new Date() - START;
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  document.getElementById('miniCounter').textContent = `💖 معاكِ ${d} يوم و${h} ساعة و${m} دقيقة و${s} ثانية 💖`;
+}
+updateCounter(); setInterval(updateCounter, 1000);
+
+// Secret "بحبك"
+let typed = '';
+document.addEventListener('keypress', e => {
+  typed += e.key;
+  if (typed.includes('بحبك')) { window.location.href = '/upload'; typed = ''; }
+  if (typed.length > 20) typed = typed.slice(-20);
+});
+
+// Logo clicks
+let logoClicks = 0;
+function logoClick() {
+  logoClicks++;
+  if (logoClicks >= 5) { window.location.href = '/upload'; logoClicks = 0; }
+}
+
+// Login
+document.getElementById('passwordInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+async function doLogin() {
+  const pw  = document.getElementById('passwordInput').value;
+  const btn = document.querySelector('.login-btn');
+  const err = document.getElementById('errorMsg');
+  btn.textContent = '💫 جاري الدخول...';
+  btn.disabled = true;
+  err.textContent = '';
+  try {
+    const r = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pw })
+    });
+    const d = await r.json();
+    if (d.success) {
+      btn.textContent = '💖 أهلاً يا حبيبتي!';
+      setTimeout(() => window.location.href = '/gallery', 700);
+    } else {
+      err.textContent = d.message;
+      btn.textContent = 'ادخلي قلبي 💕';
+      btn.disabled = false;
+      document.getElementById('passwordInput').value = '';
+      document.getElementById('passwordInput').focus();
+      document.querySelector('.login-card').style.animation = 'shake 0.4s ease';
+      setTimeout(() => document.querySelector('.login-card').style.animation = '', 500);
+    }
+  } catch {
+    err.textContent = 'في مشكلة في الاتصال، جربي تاني 😢';
+    btn.textContent = 'ادخلي قلبي 💕';
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>

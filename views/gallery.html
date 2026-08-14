@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>💕 ألبومنا يا هنا</title>
+  <link rel="icon" href="/assets/logo.png"/>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/love.css"/>
+</head>
+<body class="gallery-page">
+
+<div class="floating-hearts" id="heartsContainer" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden;z-index:1;"></div>
+
+<!-- Header -->
+<header class="site-header">
+  <div class="header-logo">
+    <img src="/assets/logo.png" alt="هنا ويوسف"/>
+    <div>
+      <div class="logo-text">💕 هنا ويوسف</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.35);">hana-youssef.website</div>
+    </div>
+  </div>
+  <div class="header-days">
+    <div class="days-number" id="daysNum">264</div>
+    <div class="days-label">يوم من الحب اللي مالوش نهاية ❤️</div>
+  </div>
+  <div class="header-actions">
+    <button class="btn-small btn-qr" onclick="showQR()">📲 باركود</button>
+    <button class="btn-small btn-logout" onclick="logout()">خروج</button>
+  </div>
+</header>
+
+<!-- Hero -->
+<section class="hero-section">
+  <div class="love-text">بحبك أوي يا هنا 💖</div>
+  <div class="love-sub">معاكِ كل يوم أحلى من اللي فاته</div>
+  <div class="full-counter">
+    <div class="counter-box"><div class="counter-num" id="cDays">0</div><div class="counter-lbl">يوم</div></div>
+    <div class="counter-box"><div class="counter-num" id="cHrs">0</div><div class="counter-lbl">ساعة</div></div>
+    <div class="counter-box"><div class="counter-num" id="cMins">0</div><div class="counter-lbl">دقيقة</div></div>
+    <div class="counter-box"><div class="counter-num" id="cSecs">0</div><div class="counter-lbl">ثانية</div></div>
+  </div>
+</section>
+
+<!-- Phrases ticker -->
+<div class="phrases-scroll"><div class="phrases-track" id="phrasesTrack"></div></div>
+
+<!-- Music Player -->
+<div class="music-bar">
+  <div class="music-icon">🎵</div>
+  <div class="music-info">
+    <div class="music-title" id="songTitle">نور العين — عمرو دياب</div>
+    <div class="music-artist" id="songArtist">أغاني حب مصرية 🎶</div>
+  </div>
+  <div class="music-controls">
+    <button class="music-btn" onclick="prevSong()">⏮</button>
+    <button class="music-btn" id="playBtn" onclick="togglePlay()">▶</button>
+    <button class="music-btn" onclick="nextSong()">⏭</button>
+  </div>
+</div>
+<div id="ytPlayer" style="position:fixed;bottom:-300px;left:-300px;width:1px;height:1px;opacity:0;pointer-events:none;"></div>
+
+<!-- Gallery -->
+<section class="gallery-section">
+  <div class="gallery-section-title">🐪 ألبومنا الجميل 🌟</div>
+  <div id="noPhotos" class="no-photos" style="display:none">
+    <div class="no-photos-icon">📸</div>
+    <h3>الألبوم فاضي لسه يا حبيبتي</h3>
+    <p>ارفعي صورنا من صفحة الرفع</p>
+  </div>
+  <div class="gallery-scroll-wrap" id="scrollWrap">
+    <div class="gallery-track" id="galleryTrack"></div>
+  </div>
+  <div class="gallery-grid" id="galleryGrid"></div>
+</section>
+
+<div class="love-bar">
+  <div class="big-love">❤️ بحبك أوي يا هنا يوسف ❤️</div>
+  <div style="margin-top:12px;font-size:16px;color:rgba(255,255,255,.5);">🐪 معاكِ حياتي أحلى 🐪</div>
+  <div class="love-domain">hana-youssef.website • كل يوم بحبك أكتر</div>
+</div>
+
+<!-- QR Modal -->
+<div class="modal-overlay" id="qrModal" onclick="closeQR(event)">
+  <div class="modal-card">
+    <img src="/assets/logo.png" style="width:70px;height:70px;border-radius:50%;margin:0 auto 12px;border:2px solid #ff6b9d;display:block;"/>
+    <h3>📲 باركود هنا ويوسف</h3>
+    <img id="qrImg" src="" alt="QR Code" style="border:3px solid #ff6b9d;border-radius:12px;display:block;margin:0 auto 16px;width:220px;height:220px;"/>
+    <p>امسح الباركود وادخل موقعنا يا حبيبتي 💕</p>
+    <p style="font-size:12px;color:#ff6b9d;">hana-youssef.website</p>
+    <button class="modal-close" onclick="closeQR()">💖 تمام</button>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <div id="lightboxContent"></div>
+  <div class="lightbox-caption" id="lightboxCaption"></div>
+</div>
+
+<style>
+.floating-hearts{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden;z-index:1;}
+.heart{position:absolute;bottom:-50px;animation:floatUp linear infinite;opacity:0;}
+@keyframes floatUp{0%{transform:translateY(0) rotate(0) scale(1);opacity:1}100%{transform:translateY(-110vh) rotate(720deg) scale(.3);opacity:0}}
+</style>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+// ── Safety: escape HTML to prevent XSS ──────────────────
+function esc(str) {
+  const d = document.createElement('div');
+  d.appendChild(document.createTextNode(String(str || '')));
+  return d.innerHTML;
+}
+
+// ── Auth Check ──────────────────────────────────────────
+fetch('/api/check-auth').then(r => r.json()).then(d => {
+  if (!d.authenticated) window.location.href = '/';
+});
+
+// ── Floating Hearts ─────────────────────────────────────
+const emojis = ['❤️','💕','💖','💗','💝','💞','🌹','✨','💫','🌸','🐪','🌟'];
+function spawnHeart() {
+  const h = document.createElement('div');
+  h.className = 'heart';
+  h.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+  h.style.cssText = `left:${Math.random()*100}%;font-size:${12+Math.random()*22}px;animation-duration:${6+Math.random()*8}s;animation-delay:${Math.random()*2}s`;
+  document.getElementById('heartsContainer').appendChild(h);
+  setTimeout(() => h.remove(), 16000);
+}
+setInterval(spawnHeart, 500);
+
+// ── Counter ─────────────────────────────────────────────
+const START = new Date('2025-11-23T00:00:00');
+function tick() {
+  const diff = new Date() - START;
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  document.getElementById('daysNum').textContent = d;
+  document.getElementById('cDays').textContent = d;
+  document.getElementById('cHrs').textContent = String(h).padStart(2,'0');
+  document.getElementById('cMins').textContent = String(m).padStart(2,'0');
+  document.getElementById('cSecs').textContent = String(s).padStart(2,'0');
+}
+tick(); setInterval(tick, 1000);
+
+// ── Phrases ─────────────────────────────────────────────
+const PHRASES = [
+  'أنتِ دنيتي وآخرتي 💕','من غيرك مش عارف أعيش 🌹','عيني اللي بتشوفك جنة ✨',
+  'حبك في دمي يا حياتي 💖','إنتِ أحلى حاجة في حياتي 🌸','بحبك أوي يا هنا 💝',
+  'إنتِ روحي وقلبي 🫀','حياتي بيكِ أجمل 🌺','إنتِ كل حاجة عندي 💞',
+  'معاكِ حياتي كاملة 🕊️','قلبي ملكك للأبد 👑','إنتِ نور عيني يا هنا 🌟',
+  'حبك غير حياتي 🌙','لو الدنيا تتكرر هختارك 💫','إنتِ فرحتي وأملي 🎀',
+  'بفكر فيكِ كل ثانية 🥹','أجمل يوم في حياتي لما قابلتك 🌹','إنتِ الكنز اللي لقيته 💎',
+  'مع بعض للأبد يا هنا 🤝','حبيبتي الأولى والأخيرة 💘'
+];
+const track = document.getElementById('phrasesTrack');
+[...PHRASES, ...PHRASES].forEach(p => {
+  const el = document.createElement('div');
+  el.className = 'phrase-pill';
+  el.textContent = p;
+  track.appendChild(el);
+});
+
+// ── YouTube Music ────────────────────────────────────────
+const SONGS = [
+  {id:'NnHpVaUSqhk', title:'نور العين', artist:'عمرو دياب'},
+  {id:'RgKAFK5djSk', title:'مش قادر', artist:'تامر حسني'},
+  {id:'JuZ7RNbYBiE', title:'بيتجنن', artist:'تامر حسني'},
+  {id:'M7lc1UVf-VE', title:'إيه اللي بيجمعنا', artist:'محمد منير'},
+  {id:'kHSFpGBFGHY', title:'معاك', artist:'أنغام'},
+  {id:'h7kFpSJHgB4', title:'تعالى', artist:'تامر حسني'},
+  {id:'zAzDkMTQpGQ', title:'وأنا في انتظارك', artist:'عمرو دياب'},
+];
+let player, currentSong = 0, isPlaying = false;
+
+function onYouTubeIframeAPIReady() {
+  player = new YT.Player('ytPlayer', {
+    height: '1', width: '1',
+    videoId: SONGS[currentSong].id,
+    playerVars: { autoplay: 1, controls: 0, mute: 0 },
+    events: {
+      onReady: e => { e.target.playVideo(); isPlaying = true; document.getElementById('playBtn').textContent = '⏸'; updateSongInfo(); },
+      onStateChange: e => { if (e.data === YT.PlayerState.ENDED) nextSong(); }
+    }
+  });
+}
+function updateSongInfo() {
+  const s = SONGS[currentSong];
+  document.getElementById('songTitle').textContent = s.title + ' — ' + s.artist;
+  document.getElementById('songArtist').textContent = 'أغاني حب مصرية 🎶';
+}
+function togglePlay() {
+  if (!player) return;
+  if (isPlaying) { player.pauseVideo(); isPlaying = false; document.getElementById('playBtn').textContent = '▶'; }
+  else { player.playVideo(); isPlaying = true; document.getElementById('playBtn').textContent = '⏸'; }
+}
+function nextSong() {
+  currentSong = (currentSong + 1) % SONGS.length;
+  if (player) { player.loadVideoById(SONGS[currentSong].id); isPlaying = true; document.getElementById('playBtn').textContent = '⏸'; }
+  updateSongInfo();
+}
+function prevSong() {
+  currentSong = (currentSong - 1 + SONGS.length) % SONGS.length;
+  if (player) { player.loadVideoById(SONGS[currentSong].id); isPlaying = true; document.getElementById('playBtn').textContent = '⏸'; }
+  updateSongInfo();
+}
+
+// ── Gallery — safe DOM building (no innerHTML for user data) ─
+const CAMEL = ['🐪','🌟','🌹','💕','✨','🌙','💎'];
+let allPhotos = [];
+
+function makeMediaEl(photo) {
+  let el;
+  if (photo.type === 'video') {
+    el = document.createElement('video');
+    el.src = photo.path;
+    el.muted = true; el.loop = true; el.autoplay = true; el.playsInline = true;
+  } else {
+    el = document.createElement('img');
+    el.src = photo.path;
+    el.alt = 'صورتنا';
+    el.loading = 'lazy';
+  }
+  return el;
+}
+
+async function loadGallery() {
+  const r = await fetch('/api/photos');
+  const d = await r.json();
+  allPhotos = d.photos || [];
+  renderGallery();
+}
+
+function renderGallery() {
+  const trackEl = document.getElementById('galleryTrack');
+  const gridEl  = document.getElementById('galleryGrid');
+  trackEl.innerHTML = ''; gridEl.innerHTML = '';
+
+  if (allPhotos.length === 0) {
+    document.getElementById('noPhotos').style.display = 'block';
+    document.getElementById('scrollWrap').style.display = 'none';
+    return;
+  }
+  document.getElementById('noPhotos').style.display = 'none';
+  document.getElementById('scrollWrap').style.display = 'block';
+
+  // Infinite scroll track (doubled)
+  [...allPhotos, ...allPhotos].forEach((p, i) => {
+    const phrase = PHRASES[i % PHRASES.length];
+    const camel  = CAMEL[i % CAMEL.length];
+
+    const card = document.createElement('div');
+    card.className = 'gallery-card';
+    card.addEventListener('click', () => openLightbox(p));
+
+    card.appendChild(makeMediaEl(p));
+
+    // Overlay — built with DOM (safe)
+    const overlay = document.createElement('div');
+    overlay.className = 'overlay';
+    const phraseEl = document.createElement('div');
+    phraseEl.className = 'phrase';
+    phraseEl.textContent = phrase;
+    overlay.appendChild(phraseEl);
+    if (p.caption) {
+      const capEl = document.createElement('div');
+      capEl.className = 'caption';
+      capEl.textContent = p.caption;   // textContent — no XSS
+      overlay.appendChild(capEl);
+    }
+    card.appendChild(overlay);
+
+    const camelEl = document.createElement('div');
+    camelEl.className = 'camel';
+    camelEl.textContent = camel;
+    card.appendChild(camelEl);
+
+    trackEl.appendChild(card);
+  });
+
+  if (allPhotos.length > 1) trackEl.classList.add('animate');
+
+  // Grid
+  allPhotos.forEach((p, i) => {
+    const card = document.createElement('div');
+    card.className = 'grid-card';
+    card.addEventListener('click', () => openLightbox(p));
+    card.appendChild(makeMediaEl(p));
+    if (p.type === 'video') {
+      const badge = document.createElement('div');
+      badge.className = 'video-badge';
+      badge.textContent = '🎬';
+      card.appendChild(badge);
+    }
+    const gridOverlay = document.createElement('div');
+    gridOverlay.className = 'grid-overlay';
+    const gridCap = document.createElement('div');
+    gridCap.className = 'grid-caption';
+    gridCap.textContent = p.caption || PHRASES[i % PHRASES.length]; // textContent
+    gridOverlay.appendChild(gridCap);
+    card.appendChild(gridOverlay);
+    gridEl.appendChild(card);
+  });
+}
+
+// ── Lightbox ─────────────────────────────────────────────
+function openLightbox(photo) {
+  const lb      = document.getElementById('lightbox');
+  const content = document.getElementById('lightboxContent');
+  content.innerHTML = '';
+  const el = makeMediaEl(photo);
+  el.style.cssText = 'max-width:95vw;max-height:85vh;border-radius:12px;';
+  if (photo.type === 'video') { el.controls = true; el.autoplay = true; }
+  content.appendChild(el);
+  document.getElementById('lightboxCaption').textContent = photo.caption || ''; // textContent
+  lb.classList.add('active');
+}
+function closeLightbox(e) {
+  if (!e || e.target === document.getElementById('lightbox') || e.target.classList.contains('lightbox-close')) {
+    document.getElementById('lightbox').classList.remove('active');
+    document.getElementById('lightboxContent').innerHTML = '';
+  }
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+// ── QR Code ──────────────────────────────────────────────
+let qrLoaded = false;
+async function showQR() {
+  document.getElementById('qrModal').classList.add('active');
+  if (!qrLoaded) {
+    const r = await fetch('/api/qrcode');
+    const d = await r.json();
+    document.getElementById('qrImg').src = d.qr;
+    qrLoaded = true;
+  }
+}
+function closeQR(e) {
+  if (!e || e.target === document.getElementById('qrModal') || e.target.classList.contains('modal-close'))
+    document.getElementById('qrModal').classList.remove('active');
+}
+
+// ── Logout ───────────────────────────────────────────────
+async function logout() {
+  await fetch('/api/logout', { method: 'POST' });
+  window.location.href = '/';
+}
+
+// ── Secret keyboard shortcut for upload ─────────────────
+let typed = '';
+document.addEventListener('keypress', e => {
+  typed += e.key;
+  if (typed.includes('بحبك')) { window.location.href = '/upload'; typed = ''; }
+  if (typed.length > 20) typed = typed.slice(-20);
+});
+
+loadGallery();
+</script>
+</body>
+</html>
