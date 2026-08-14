@@ -330,6 +330,44 @@ function closeQR(e) {
     document.getElementById('qrModal').classList.remove('active');
 }
 
+// ── Birthday Surprise ────────────────────────────────────
+const SPECIAL_DAYS = [
+  { month: 8, day: 7, emoji: '🎂🎉',  title: 'كل سنة وانتي طيبة يا هنا 🎂💕', sub: 'بحبككككك يا روحي وأغلى إنسانة في حياتي ❤️' },
+  { month: 1, day: 1, emoji: '🎆🎊',  title: 'سنة جديدة سعيدة يا هنا ✨🎊',   sub: 'بحبككككك كل سنة وانتي طيبة يا روحي 💕' },
+];
+(function checkSpecialDay() {
+  const now   = new Date();
+  const month = now.getMonth() + 1;
+  const day   = now.getDate();
+  const match = SPECIAL_DAYS.find(d => d.month === month && d.day === day);
+  if (!match) return;
+
+  const cc = document.createElement('div');
+  cc.className = 'bday-confetti';
+  const confettiEmojis = ['🎉','💕','🌹','✨','🎊','🌸','💖','⭐','🎈'];
+  for (let i = 0; i < 30; i++) {
+    const s = document.createElement('span');
+    s.textContent = confettiEmojis[i % confettiEmojis.length];
+    const dur = 3 + Math.random() * 5;
+    s.style.cssText = `left:${Math.random()*100}%;animation-duration:${dur}s;animation-delay:${Math.random()*4}s;font-size:${16+Math.random()*18}px;`;
+    cc.appendChild(s);
+  }
+  document.body.appendChild(cc);
+
+  const ov = document.createElement('div');
+  ov.className = 'bday-overlay';
+  ov.innerHTML = `
+    <span class="bday-emoji">${match.emoji}</span>
+    <div class="bday-title">${match.title}</div>
+    <div class="bday-sub">${match.sub}</div>
+    <div class="bday-hearts">💕 ❤️ 💕 ❤️ 💕</div>
+    <button class="bday-close" onclick="this.closest('.bday-overlay').remove();document.querySelector('.bday-confetti')?.remove();">
+      يسلم قلبك يا حبيبتي 💖
+    </button>
+  `;
+  document.body.appendChild(ov);
+})();
+
 // ── Logout ───────────────────────────────────────────────
 async function logout() {
   await fetch('/api/logout', { method: 'POST' });

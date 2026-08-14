@@ -499,3 +499,58 @@ body {
   .music-bar { padding: 12px 14px; }
   .login-card { padding: 28px 20px; }
 }
+
+/* ── Birthday Surprise Overlay ────────────────────────── */
+.bday-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(10,0,20,.92);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center; padding: 24px;
+  animation: bdayFadeIn .6s ease;
+  backdrop-filter: blur(6px);
+}
+@keyframes bdayFadeIn { from { opacity:0; transform:scale(.95); } to { opacity:1; transform:scale(1); } }
+
+.bday-emoji {
+  font-size: 80px; animation: bdayBounce 1.2s infinite alternate ease-in-out;
+  display: block; margin-bottom: 12px;
+}
+@keyframes bdayBounce { from { transform:translateY(0) scale(1); } to { transform:translateY(-18px) scale(1.08); } }
+
+.bday-title {
+  font-size: clamp(26px,6vw,50px); font-weight: 900;
+  background: linear-gradient(135deg,#ff6b9d,#ffd6e0,#ffb347,#ff6b9d);
+  background-size: 300% 300%; animation: shimmer 3s infinite;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 14px; line-height: 1.3;
+}
+@keyframes shimmer { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+
+.bday-sub {
+  font-size: clamp(18px,4vw,28px); color: #ffd6e0;
+  font-weight: 700; margin-bottom: 28px; opacity: .95;
+}
+
+.bday-hearts { font-size: 30px; letter-spacing: 6px; margin-bottom: 28px; animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.15);} }
+
+.bday-close {
+  background: linear-gradient(135deg,#ff6b9d,#ff8fab);
+  border: none; border-radius: 50px; padding: 14px 40px;
+  color: #fff; font-size: 18px; font-weight: 700;
+  cursor: pointer; font-family: 'Tajawal',sans-serif;
+  box-shadow: 0 6px 24px rgba(255,107,157,.5);
+  transition: transform .2s;
+}
+.bday-close:hover { transform: scale(1.05); }
+
+.bday-confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 10000; }
+.bday-confetti span {
+  position: absolute; top: -20px; font-size: 22px;
+  animation: confettiFall linear infinite;
+}
+@keyframes confettiFall {
+  0%   { transform: translateY(-20px) rotate(0deg);   opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
