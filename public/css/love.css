@@ -411,6 +411,18 @@ body {
   position: absolute; bottom: 20px; left: 0; right: 0;
   text-align: center; color: #ffd4e4; font-size: 15px; font-weight: 600;
 }
+.lightbox-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  background: rgba(255,255,255,.15); backdrop-filter: blur(6px);
+  border: none; border-radius: 50%;
+  width: 48px; height: 48px; font-size: 28px; color: white;
+  cursor: pointer; transition: background .2s;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 10;
+}
+.lightbox-nav:hover { background: rgba(255,107,157,.45); }
+.lightbox-prev { right: 16px; }
+.lightbox-next { left: 16px; }
 
 /* Love bar */
 .love-bar {

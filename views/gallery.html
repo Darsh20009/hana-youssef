@@ -110,7 +110,9 @@
 <!-- Lightbox -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
   <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <button class="lightbox-nav lightbox-prev" onclick="lightboxPrev();event.stopPropagation()">&#8250;</button>
   <div id="lightboxContent"></div>
+  <button class="lightbox-nav lightbox-next" onclick="lightboxNext();event.stopPropagation()">&#8249;</button>
   <div class="lightbox-caption" id="lightboxCaption"></div>
 </div>
 
@@ -185,7 +187,7 @@ audioEl.src = '/media/Amr_Diab_-_Khalik_Maaya___\u0639\u0645\u0631\u0648_\u062f\
 document.getElementById('songTitle').textContent  = 'خليك معايا — عمرو دياب';
 document.getElementById('songArtist').textContent = 'اضغط ▶ لتشغيل الموسيقى';
 
-audioEl.addEventListener('play',  () => { document.getElementById('playBtn').textContent = '⏸'; document.getElementById('songArtist').textContent = 'شغّالة...'; });
+audioEl.addEventListener('play',  () => { document.getElementById('playBtn').textContent = '⏸'; document.getElementById('songArtist').textContent = 'شغّالة... 🎵'; });
 audioEl.addEventListener('pause', () => { document.getElementById('playBtn').textContent = '▶'; document.getElementById('songArtist').textContent = 'اضغط ▶ للاستمرار'; });
 
 function togglePlay() {
@@ -194,6 +196,22 @@ function togglePlay() {
 }
 function nextSong()  { audioEl.currentTime = 0; audioEl.play().catch(()=>{}); }
 function prevSong()  { audioEl.currentTime = 0; }
+
+// Auto-play on first user interaction (browsers block autoplay without interaction)
+(function() {
+  let started = false;
+  function startMusic() {
+    if (started) return;
+    started = true;
+    audioEl.play().catch(() => {});
+    document.removeEventListener('touchstart', startMusic);
+    document.removeEventListener('click', startMusic);
+    document.removeEventListener('keydown', startMusic);
+  }
+  document.addEventListener('touchstart', startMusic, { once: true, passive: true });
+  document.addEventListener('click', startMusic, { once: true });
+  document.addEventListener('keydown', startMusic, { once: true });
+})();
 
 // ── Gallery ───────────────────────────────────────────────
 const HEARTS = ['❤️','💕','💖','🌹','✨','🌙','💎'];
@@ -206,7 +224,7 @@ function filterAlbum(album, el) {
   if (el) el.classList.add('active');
   if (album === 'all')    displayPhotos = [...allPhotos.filter(p=>p.type!=='video'), ...allPhotos.filter(p=>p.type==='video')];
   else if (album === 'videos') displayPhotos = allPhotos.filter(p => p.type === 'video');
-  else                    displayPhotos = allPhotos.filter(p => p.album === album);
+  else                    displayPhotos = [...allPhotos.filter(p => p.album === album && p.type !== 'video'), ...allPhotos.filter(p => p.album === album && p.type === 'video')];
   const gridEl = document.getElementById('galleryGrid');
   gridEl.innerHTML = ''; shownCount = 0;
   if (displayPhotos.length === 0) {
@@ -265,7 +283,7 @@ function renderGallery() {
   const gridEl  = document.getElementById('galleryGrid');
   trackEl.innerHTML = ''; gridEl.innerHTML = '';
   shownCount = 0;
-  displayPhotos = [...allPhotos];
+  displayPhotos = [...allPhotos.filter(p=>p.type!=='video'), ...allPhotos.filter(p=>p.type==='video')];
   updateCounts();
 
   if (allPhotos.length === 0) {
@@ -354,25 +372,66 @@ function setupSentinel(gridEl) {
   obs.observe(s);
 }
 
-// ── Lightbox ─────────────────────────────────────────────
+// ── Lightbox with swipe support ───────────────────────────
+let lightboxIndex = -1;
+
 function openLightbox(photo) {
-  const lb      = document.getElementById('lightbox');
+  lightboxIndex = displayPhotos.findIndex(p => p.filename === photo.filename);
+  renderLightboxItem(photo);
+  document.getElementById('lightbox').classList.add('active');
+}
+
+function renderLightboxItem(photo) {
   const content = document.getElementById('lightboxContent');
   content.innerHTML = '';
   const el = makeMediaEl(photo);
   el.style.cssText = 'max-width:95vw;max-height:85vh;border-radius:12px;';
   if (photo.type === 'video') { el.controls = true; el.autoplay = true; }
   content.appendChild(el);
-  document.getElementById('lightboxCaption').textContent = photo.caption || ''; // textContent
-  lb.classList.add('active');
+  document.getElementById('lightboxCaption').textContent = photo.caption || '';
 }
+
+function lightboxNext() {
+  if (displayPhotos.length === 0) return;
+  lightboxIndex = (lightboxIndex + 1) % displayPhotos.length;
+  renderLightboxItem(displayPhotos[lightboxIndex]);
+}
+function lightboxPrev() {
+  if (displayPhotos.length === 0) return;
+  lightboxIndex = (lightboxIndex - 1 + displayPhotos.length) % displayPhotos.length;
+  renderLightboxItem(displayPhotos[lightboxIndex]);
+}
+
 function closeLightbox(e) {
   if (!e || e.target === document.getElementById('lightbox') || e.target.classList.contains('lightbox-close')) {
     document.getElementById('lightbox').classList.remove('active');
     document.getElementById('lightboxContent').innerHTML = '';
+    lightboxIndex = -1;
   }
 }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeLightbox();
+  if (e.key === 'ArrowLeft')  lightboxNext();
+  if (e.key === 'ArrowRight') lightboxPrev();
+});
+
+// Touch swipe for lightbox
+(function() {
+  let startX = 0, startY = 0;
+  const lb = document.getElementById('lightbox');
+  lb.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+  }, { passive: true });
+  lb.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = e.changedTouches[0].clientY - startY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+      // RTL: swipe right = previous, swipe left = next
+      if (dx > 0) lightboxPrev(); else lightboxNext();
+    }
+  }, { passive: true });
+})();
 
 // ── QR Code ──────────────────────────────────────────────
 let qrLoaded = false;
