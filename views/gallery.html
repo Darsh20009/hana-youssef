@@ -66,7 +66,7 @@
     <button class="music-btn" onclick="nextSong()">⏭</button>
   </div>
 </div>
-<audio id="audioPlayer" loop preload="auto" autoplay style="display:none"></audio>
+<audio id="audioPlayer" preload="auto" autoplay style="display:none"></audio>
 
 <!-- Gallery -->
 <section class="gallery-section">
@@ -180,11 +180,23 @@ const track = document.getElementById('phrasesTrack');
   track.appendChild(el);
 });
 
-// ── Local Audio Player ────────────────────────────────────
+// ── Local Audio Player with playlist ─────────────────────
 const audioEl = document.getElementById('audioPlayer');
-audioEl.src = '/media/Amr_Diab_-_Khalik_Maaya___\u0639\u0645\u0631\u0648_\u062f\u064a\u0627\u0628_-_\u062e\u0644\u064a\u0643_\u0645\u0639\u0627\u064a\u0627_1786738867805.mp3';
+let playlist = [{
+  path: '/media/Amr_Diab_-_Khalik_Maaya___\u0639\u0645\u0631\u0648_\u062f\u064a\u0627\u0628_-_\u062e\u0644\u064a\u0643_\u0645\u0639\u0627\u064a\u0627_1786738867805.mp3',
+  title: 'خليك معايا — عمرو دياب'
+}];
+let songIndex = 0;
 
-document.getElementById('songTitle').textContent  = 'خليك معايا — عمرو دياب';
+function loadSong(i) {
+  songIndex = (i + playlist.length) % playlist.length;
+  const s = playlist[songIndex];
+  const wasPlaying = !audioEl.paused;
+  audioEl.src = s.path;
+  document.getElementById('songTitle').textContent = s.title;
+  if (wasPlaying) audioEl.play().catch(()=>{});
+}
+loadSong(0);
 document.getElementById('songArtist').textContent = 'اضغط ▶ لتشغيل الموسيقى';
 
 audioEl.addEventListener('play',  () => { document.getElementById('playBtn').textContent = '⏸'; document.getElementById('songArtist').textContent = 'شغّالة... 🎵'; });
@@ -194,8 +206,10 @@ function togglePlay() {
   if (audioEl.paused) audioEl.play().catch(()=>{});
   else audioEl.pause();
 }
-function nextSong()  { audioEl.currentTime = 0; audioEl.play().catch(()=>{}); }
-function prevSong()  { audioEl.currentTime = 0; }
+function nextSong()  { loadSong(songIndex + 1); audioEl.play().catch(()=>{}); }
+function prevSong()  { loadSong(songIndex - 1); audioEl.play().catch(()=>{}); }
+// Advance to next song when current one ends (loops back to first at the end)
+audioEl.addEventListener('ended', nextSong);
 
 // Auto-play on first user interaction (browsers block autoplay without interaction)
 (function() {
@@ -274,7 +288,16 @@ function makeMediaEl(photo, lazy = false) {
 async function loadGallery() {
   const r = await fetch('/api/photos');
   const d = await r.json();
-  allPhotos = d.photos || [];
+  const all = d.photos || [];
+  // Songs go to the music player playlist, not the photo gallery
+  const songs = all.filter(p => p.type === 'audio');
+  if (songs.length > 0) {
+    songs.forEach(s => playlist.push({
+      path: s.path,
+      title: s.caption || s.filename.replace(/\.[^.]+$/, '')
+    }));
+  }
+  allPhotos = all.filter(p => p.type !== 'audio');
   renderGallery();
 }
 
@@ -294,8 +317,8 @@ function renderGallery() {
   document.getElementById('noPhotos').style.display = 'none';
   document.getElementById('scrollWrap').style.display = 'block';
 
-  // Horizontal infinite track — ALL media (images + videos), duplicated for seamless loop
-  const trackPhotos = [...allPhotos];
+  // Horizontal infinite track — ALL media, photos first then videos, duplicated for seamless loop
+  const trackPhotos = [...displayPhotos];
   function makeTrackCard(p, i) {
     const card = document.createElement('div');
     card.className = 'gallery-card';

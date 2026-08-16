@@ -33,9 +33,9 @@
     <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
       <div class="drop-zone-icon">🖼️</div>
       <h3>اسحبي الصور هنا أو اضغطي للاختيار</h3>
-      <p>صور وفيديوهات — JPG, PNG, GIF, MP4, MOV (حتى 200MB لكل ملف)</p>
+      <p>صور وفيديوهات وأغاني — JPG, PNG, GIF, MP4, MOV, MP3 (حتى 200MB لكل ملف)</p>
     </div>
-    <input type="file" id="fileInput" multiple accept="image/*,video/*" style="display:none" onchange="handleFiles(this.files)"/>
+    <input type="file" id="fileInput" multiple accept="image/*,video/*,audio/*" style="display:none" onchange="handleFiles(this.files)"/>
     <div class="preview-grid" id="previewGrid"></div>
     <button class="upload-submit" id="uploadBtn" onclick="doUpload()" style="display:none">✨ ارفعي الصور للألبوم</button>
     <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
@@ -69,7 +69,11 @@ async function loadExisting() {
 
     // Media element
     let mediaEl;
-    if (p.type === 'video') {
+    if (p.type === 'audio') {
+      mediaEl = document.createElement('div');
+      mediaEl.style.cssText = 'width:100%;height:100px;display:flex;align-items:center;justify-content:center;background:rgba(255,107,157,.12);font-size:36px;';
+      mediaEl.textContent = '🎵';
+    } else if (p.type === 'video') {
       mediaEl = document.createElement('video');
       mediaEl.src = p.path;
       mediaEl.style.cssText = 'width:100%;height:100px;object-fit:cover;display:block;';
@@ -144,7 +148,15 @@ function renderPreviews() {
 
     const url = URL.createObjectURL(file);
     let mediaEl;
-    if (file.type.startsWith('video/')) {
+    if (file.type.startsWith('audio/')) {
+      mediaEl = document.createElement('div');
+      mediaEl.style.cssText = 'width:100%;height:140px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,107,157,.12);gap:8px;';
+      const icon = document.createElement('div');
+      icon.textContent = '🎵'; icon.style.fontSize = '40px';
+      const name = document.createElement('div');
+      name.textContent = file.name; name.style.cssText = 'font-size:11px;color:#c05080;padding:0 8px;text-align:center;word-break:break-all;';
+      mediaEl.appendChild(icon); mediaEl.appendChild(name);
+    } else if (file.type.startsWith('video/')) {
       mediaEl = document.createElement('video');
       mediaEl.src = url;
       mediaEl.style.cssText = 'width:100%;height:140px;object-fit:cover;display:block;';
@@ -159,29 +171,31 @@ function renderPreviews() {
     // Caption input
     const input = document.createElement('input');
     input.type = 'text';
-    input.placeholder = 'اكتبي تعليق على الصورة...';
+    input.placeholder = file.type.startsWith('audio/') ? 'اكتبي اسم الأغنية...' : 'اكتبي تعليق على الصورة...';
     input.id = `caption_${i}`;
     input.maxLength = 200;
     item.appendChild(input);
 
-    // Album selector
-    const sel = document.createElement('select');
-    sel.id = `album_${i}`;
-    sel.style.cssText = 'width:100%;margin-top:6px;padding:7px 10px;border-radius:8px;border:1px solid rgba(255,107,157,.4);background:rgba(255,107,157,.1);color:#c05080;font-family:Tajawal,sans-serif;font-size:13px;font-weight:700;';
-    const albumOpts = [
-      {v:'', t:'📸 الكل (بدون ألبوم)'},
-      {v:'together', t:'💑 مع بعض'},
-      {v:'her', t:'🌸 صورها'},
-      {v:'his', t:'😎 صوري'},
-    ];
-    if (file.type.startsWith('video/')) albumOpts.push({v:'videos', t:'🎬 فيديوهات'});
-    albumOpts.forEach(o => {
-      const opt = document.createElement('option');
-      opt.value = o.v; opt.textContent = o.t;
-      if (file.type.startsWith('video/') && o.v === 'videos') opt.selected = true;
-      sel.appendChild(opt);
-    });
-    item.appendChild(sel);
+    // Album selector (not for songs — they go to the music player automatically)
+    if (!file.type.startsWith('audio/')) {
+      const sel = document.createElement('select');
+      sel.id = `album_${i}`;
+      sel.style.cssText = 'width:100%;margin-top:6px;padding:7px 10px;border-radius:8px;border:1px solid rgba(255,107,157,.4);background:rgba(255,107,157,.1);color:#c05080;font-family:Tajawal,sans-serif;font-size:13px;font-weight:700;';
+      const albumOpts = [
+        {v:'', t:'📸 الكل (بدون ألبوم)'},
+        {v:'together', t:'💑 مع بعض'},
+        {v:'her', t:'🌸 صورها'},
+        {v:'his', t:'😎 صوري'},
+      ];
+      if (file.type.startsWith('video/')) albumOpts.push({v:'videos', t:'🎬 فيديوهات'});
+      albumOpts.forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o.v; opt.textContent = o.t;
+        if (file.type.startsWith('video/') && o.v === 'videos') opt.selected = true;
+        sel.appendChild(opt);
+      });
+      item.appendChild(sel);
+    }
 
     // Remove button
     const removeBtn = document.createElement('button');

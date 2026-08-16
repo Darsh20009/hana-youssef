@@ -87,7 +87,7 @@ const upload = multer({
   storage,
   limits: { fileSize: 200 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    if (/\.(jpg|jpeg|png|gif|webp|mp4|mov|avi)$/i.test(file.originalname)) cb(null, true);
+    if (/\.(jpg|jpeg|png|gif|webp|mp4|mov|avi|mp3|m4a|wav|aac|ogg)$/i.test(file.originalname)) cb(null, true);
     else cb(new Error('نوع الملف مش مدعوم'));
   }
 });
@@ -165,13 +165,14 @@ app.post('/api/upload', requireAuth, upload.array('photos', 200), (req, res) => 
   const photos = loadPhotos();
   const added = req.files.map((f, i) => {
     const isVideo = /\.(mp4|mov|avi)$/i.test(f.filename);
+    const isAudio = /\.(mp3|m4a|wav|aac|ogg)$/i.test(f.filename);
     const entry = {
       id: `${Date.now()}_${i}`,
       filename: f.filename,
       path: '/media/' + f.filename,
-      type: isVideo ? 'video' : 'image',
+      type: isAudio ? 'audio' : (isVideo ? 'video' : 'image'),
       caption: String(captions[i] || '').slice(0, 200),
-      album: String(albums[i] || (isVideo ? 'videos' : '')).slice(0, 50),
+      album: String(albums[i] || (isAudio ? 'songs' : (isVideo ? 'videos' : ''))).slice(0, 50),
       uploadedAt: new Date().toISOString()
     };
     photos.push(entry);
