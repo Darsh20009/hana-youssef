@@ -4,6 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const QRCode = require('qrcode');
+const sharp = require('sharp');
 
 // ── Require secrets at startup ───────────────────────────
 const SESSION_SECRET = process.env.SESSION_SECRET;
@@ -139,16 +140,31 @@ app.get('/upload', requireAuthPage, (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'upload.html'));
 });
 
-// ── Protected Media Serving ──────────────────────────────
+// ── Thumbnail generation ─────────────────────────────────
+async function makeThumb(filename) {
+  if (!/\.(jpg|jpeg|png|gif|webp)$/i.test(filename)) return null;
+  const thumbName = 'thumb_' + filename.replace(/\.[^.]+$/, '') + '.webp';
+  const src = path.join(UPLOADS_DIR, filename);
+  const dst = path.join(UPLOADS_DIR, thumbName);
+  try {
+    await sharp(src).rotate().resize(640, 640, { fit: 'inside', withoutEnlargement: true }).webp({ quality: 72 }).toFile(dst);
+    return '/media/' + thumbName;
+  } catch (e) {
+    console.error('Thumb failed for', filename, e.message);
+    return null;
+  }
+}
+
+// ── Protected Media Serving (cached) ─────────────────────
 app.get('/media/:filename', requireAuth, (req, res) => {
   const name = path.basename(req.params.filename);
   const fp = path.join(__dirname, 'uploads', name);
   if (!fs.existsSync(fp)) return res.status(404).send('Not found');
-  res.sendFile(fp);
+  res.sendFile(fp, { maxAge: '7d', immutable: true });
 });
 
 // ── Protected API Routes ─────────────────────────────────
-app.post('/api/upload', requireAuth, upload.array('photos', 200), (req, res) => {
+app.post('/api/upload', requireAuth, upload.array('photos', 200), async (req, res) => {
   if (!req.files || req.files.length === 0)
     return res.status(400).json({ success: false, message: 'مفيش ملفات اتحملت' });
 
@@ -163,6 +179,7 @@ app.post('/api/upload', requireAuth, upload.array('photos', 200), (req, res) => 
   } catch { albums = {}; }
 
   const photos = loadPhotos();
+  const thumbs = await Promise.all(req.files.map(f => makeThumb(f.filename)));
   const added = req.files.map((f, i) => {
     const isVideo = /\.(mp4|mov|avi)$/i.test(f.filename);
     const isAudio = /\.(mp3|m4a|wav|aac|ogg)$/i.test(f.filename);
@@ -171,6 +188,7 @@ app.post('/api/upload', requireAuth, upload.array('photos', 200), (req, res) => 
       filename: f.filename,
       path: '/media/' + f.filename,
       type: isAudio ? 'audio' : (isVideo ? 'video' : 'image'),
+      thumb: thumbs[i] || undefined,
       caption: String(captions[i] || '').slice(0, 200),
       album: String(albums[i] || (isAudio ? 'songs' : (isVideo ? 'videos' : ''))).slice(0, 50),
       uploadedAt: new Date().toISOString()
@@ -206,6 +224,8 @@ app.delete('/api/photos/:filename', requireAuth, (req, res) => {
   savePhotos(photos);
   const fp = path.join(__dirname, 'uploads', name);
   if (fs.existsSync(fp)) fs.unlinkSync(fp);
+  const tp = path.join(__dirname, 'uploads', 'thumb_' + name.replace(/\.[^.]+$/, '') + '.webp');
+  if (fs.existsSync(tp)) fs.unlinkSync(tp);
   res.json({ success: true });
 });
 
@@ -216,6 +236,19 @@ app.get('/api/qrcode', requireAuth, async (req, res) => {
   });
   res.json({ qr });
 });
+
+// ── Backfill thumbnails for existing photos (once at startup) ──
+(async function backfillThumbs() {
+  const photos = loadPhotos();
+  let changed = false;
+  for (const p of photos) {
+    if (p.type === 'image' && !p.thumb) {
+      const t = await makeThumb(p.filename);
+      if (t) { p.thumb = t; changed = true; }
+    }
+  }
+  if (changed) { savePhotos(photos); console.log('✅ Thumbnails backfilled'); }
+})();
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`💕 Love is running on port ${PORT} — for Hana Youssef forever 💕`);

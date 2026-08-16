@@ -33,7 +33,7 @@
     <div class="days-label">يوم من الحب اللي مالوش نهاية ❤️</div>
   </div>
   <div class="header-actions">
-    <button class="btn-small btn-qr" onclick="window.location.href='/upload'">📤 رفع صور وأغاني</button>
+    <button class="btn-small btn-upload" onclick="window.location.href='/upload'">📤 رفع صور وأغاني</button>
     <button class="btn-small btn-qr" onclick="showQR()">📲 باركود</button>
     <button class="btn-small btn-logout" onclick="logout()">خروج</button>
   </div>
@@ -273,7 +273,7 @@ const videoObserver = new IntersectionObserver(entries => {
   });
 }, { rootMargin: '200px' });
 
-function makeMediaEl(photo, lazy = false) {
+function makeMediaEl(photo, lazy = false, full = false) {
   if (photo.type === 'video') {
     const el = document.createElement('video');
     el.muted = true; el.loop = true; el.playsInline = true; el.preload = 'none';
@@ -282,7 +282,9 @@ function makeMediaEl(photo, lazy = false) {
     return el;
   }
   const el = document.createElement('img');
-  el.src = photo.path; el.alt = 'صورتنا'; el.loading = 'lazy';
+  // Use lightweight thumbnail in gallery, full-size only in lightbox
+  el.src = (!full && photo.thumb) ? photo.thumb : photo.path;
+  el.alt = 'صورتنا'; el.loading = 'lazy'; el.decoding = 'async';
   return el;
 }
 
@@ -408,7 +410,7 @@ function openLightbox(photo) {
 function renderLightboxItem(photo) {
   const content = document.getElementById('lightboxContent');
   content.innerHTML = '';
-  const el = makeMediaEl(photo);
+  const el = makeMediaEl(photo, false, true);
   el.style.cssText = 'max-width:95vw;max-height:85vh;border-radius:12px;';
   if (photo.type === 'video') { el.controls = true; el.autoplay = true; }
   content.appendChild(el);

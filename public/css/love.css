@@ -227,6 +227,12 @@ body {
   padding: 8px 16px; border-radius: 20px; border: none; cursor: pointer;
   font-family: 'Tajawal',sans-serif; font-size: 13px; font-weight: 700; transition: all .3s;
 }
+.btn-upload {
+  background: linear-gradient(135deg,#d4608a,#e8809c);
+  border: none; color: #fff;
+  box-shadow: 0 3px 12px rgba(180,60,100,.35);
+}
+.btn-upload:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(180,60,100,.45); }
 .btn-qr { background: rgba(210,120,150,.12); border: 1px solid rgba(210,120,150,.35); color: #b03060; }
 .btn-qr:hover { background: rgba(210,120,150,.25); }
 .btn-logout { background: rgba(180,60,100,.07); border: 1px solid rgba(180,60,100,.15); color: #c2889e; }
