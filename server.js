@@ -8,7 +8,10 @@ const sharp = require('sharp');
 
 // ── Require secrets at startup ───────────────────────────
 const SESSION_SECRET = process.env.SESSION_SECRET;
-const LOVE_PASSWORD  = process.env.LOVE_PASSWORD;
+// Keep the same normalization on both sides of the comparison. This also
+// prevents an accidental trailing newline/space in Replit Secrets from
+// making a valid password look incorrect.
+const LOVE_PASSWORD  = String(process.env.LOVE_PASSWORD || '').trim().replace(/\s/g, '');
 
 if (!SESSION_SECRET) {
   console.error('ERROR: SESSION_SECRET environment secret is not set. Please configure it.');

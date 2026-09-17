@@ -124,19 +124,25 @@ document.getElementById('loginForm').addEventListener('submit', e => {
 async function doLogin() {
   const raw  = document.getElementById('passwordInput').value;
   const isAdmin = raw.endsWith('بحبك');
-  const pw   = isAdmin ? raw.slice(0, -4) : raw;   // strip بحبك before sending
+  // Try the legacy admin form first, then the exact value. This keeps
+  // passwords that genuinely end with "بحبك" valid as well.
+  const passwords = isAdmin ? [raw.slice(0, -4), raw] : [raw];
   const btn  = document.querySelector('.login-btn');
   const err  = document.getElementById('errorMsg');
   btn.textContent = '💫 جاري الدخول...';
   btn.disabled = true;
   err.textContent = '';
   try {
-    const r = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: pw })
-    });
-    const d = await r.json();
+    let d = { success: false };
+    for (const password of passwords) {
+      const r = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+      d = await r.json();
+      if (d.success || r.status === 429) break;
+    }
     if (d.success) {
       btn.textContent = isAdmin ? '🔑 تم فتح مساحة الرفع' : '💖 أهلًا بكِ في ذكرياتنا';
       setTimeout(() => window.location.href = isAdmin ? '/upload' : '/gallery', 700);
