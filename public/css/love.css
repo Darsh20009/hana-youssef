@@ -10,6 +10,16 @@ body {
   background: #fdf0f4;
 }
 
+button, input { -webkit-tap-highlight-color: transparent; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}
+
 /* ── Animations ──────────────────────────────── */
 @keyframes shake {
   0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)}
@@ -181,7 +191,10 @@ body {
    GALLERY PAGE
 ══════════════════════════════════════════════ */
 .gallery-page {
-  background: linear-gradient(160deg, #fff0f6 0%, #fde8ef 40%, #fff8f2 80%, #fdf3f6 100%);
+  background:
+    radial-gradient(circle at 10% 10%, rgba(255, 194, 216, .38), transparent 32%),
+    radial-gradient(circle at 90% 18%, rgba(255, 220, 184, .28), transparent 28%),
+    linear-gradient(160deg, #fff0f6 0%, #fde8ef 40%, #fff8f2 80%, #fdf3f6 100%);
   min-height: 100vh;
 }
 
@@ -251,7 +264,7 @@ body {
   line-height: 1.15;
   margin-bottom: 10px;
 }
-.love-sub { font-size: clamp(14px,3vw,20px); color: #c2889e; margin-bottom: 28px; }
+.love-sub { font-size: clamp(14px,3vw,20px); color: #9c687d; margin-bottom: 28px; }
 
 /* Counter */
 .full-counter { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 0 auto 8px; }
@@ -291,11 +304,15 @@ body {
   margin: 0 20px 28px;
   display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
   box-shadow: 0 3px 14px rgba(180,60,100,.07);
+  max-width: 1180px;
+  margin-inline: auto;
 }
-.music-icon { font-size: 26px; animation: float 2.5s ease-in-out infinite; }
+.music-icon { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; font-size: 25px; color: #fff; background: linear-gradient(135deg,#b94473,#e18aa7); animation: float 2.5s ease-in-out infinite; }
 .music-info { flex: 1; min-width: 100px; }
 .music-title { font-size: 14px; font-weight: 700; color: #b03060; }
 .music-artist { font-size: 12px; color: #c2889e; }
+.music-progress { height: 3px; margin-top: 8px; border-radius: 99px; overflow: hidden; background: rgba(176,48,96,.12); }
+.music-progress-fill { height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg,#b94473,#e18aa7); transition: width .15s linear; }
 .music-controls { display: flex; gap: 8px; }
 .music-btn {
   width: 34px; height: 34px; border-radius: 50%; border: none; cursor: pointer;
@@ -305,7 +322,7 @@ body {
 .music-btn:hover { background: rgba(210,120,150,.35); transform: scale(1.1); }
 
 /* Gallery section */
-.gallery-section { padding: 0 16px 40px; }
+.gallery-section { width: min(1180px, 100%); margin-inline: auto; padding: 0 16px 40px; }
 .gallery-section-title { font-size: 22px; font-weight: 800; color: #b03060; text-align: center; margin-bottom: 22px; }
 
 .no-photos { text-align: center; padding: 60px 20px; }
@@ -330,6 +347,7 @@ body {
   transition: transform .3s, box-shadow .3s;
   cursor: pointer;
   background: #fff0f4;
+  contain: layout paint;
 }
 .gallery-card:hover {
   transform: scale(1.03) translateY(-4px);
@@ -355,6 +373,8 @@ body {
   cursor: pointer; transition: all .3s;
   background: #fff0f4;
   box-shadow: 0 3px 12px rgba(180,60,100,.07);
+  content-visibility: auto;
+  contain-intrinsic-size: 220px;
 }
 .grid-card:hover { border-color: rgba(210,120,150,.5); transform: scale(1.02); box-shadow: 0 6px 22px rgba(180,60,100,.14); }
 .grid-card img, .grid-card video { width: 100%; height: 100%; object-fit: cover; }
@@ -515,6 +535,7 @@ body {
   .counter-num { font-size: 26px; }
   .gallery-card { width: 210px; height: 265px; }
   .music-bar { padding: 12px 14px; }
+  .music-icon { width: 34px; height: 34px; }
   .login-card { padding: 28px 20px; }
 }
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>💕 ألبومنا يا هنا</title>
+  <title>💕 هنا ويوسف — ذكرياتنا</title>
   <link rel="icon" href="/assets/logo.png"/>
   <link rel="apple-touch-icon" href="/assets/logo.png"/>
   <link rel="manifest" href="/manifest.json"/>
@@ -30,7 +30,7 @@
   </div>
   <div class="header-days">
     <div class="days-number" id="daysNum">264</div>
-    <div class="days-label">يوم من الحب اللي مالوش نهاية ❤️</div>
+    <div class="days-label">يومًا من الحكاية التي نكتبها معًا</div>
   </div>
   <div class="header-actions">
     <button class="btn-small btn-upload" onclick="window.location.href='/upload'">📤 رفع صور وأغاني</button>
@@ -41,8 +41,8 @@
 
 <!-- Hero -->
 <section class="hero-section">
-  <div class="love-text">بحبك أوي يا هنا 💖</div>
-  <div class="love-sub">معاكِ كل يوم أحلى من اللي فاته</div>
+  <div class="love-text">معكِ، للأيام معنى أجمل 💖</div>
+  <div class="love-sub">صور صغيرة… تحمل شعورًا كبيرًا لا يُنسى</div>
   <div class="full-counter">
     <div class="counter-box"><div class="counter-num" id="cDays">0</div><div class="counter-lbl">يوم</div></div>
     <div class="counter-box"><div class="counter-num" id="cHrs">0</div><div class="counter-lbl">ساعة</div></div>
@@ -52,26 +52,27 @@
 </section>
 
 <!-- Phrases ticker -->
-<div class="phrases-scroll"><div class="phrases-track" id="phrasesTrack"></div></div>
+<div class="phrases-scroll" aria-label="كلمات من حكايتنا"><div class="phrases-track" id="phrasesTrack"></div></div>
 
 <!-- Music Player -->
 <div class="music-bar">
-  <div class="music-icon">🎵</div>
+  <div class="music-icon">♫</div>
   <div class="music-info">
-    <div class="music-title" id="songTitle">نور العين — عمرو دياب</div>
-    <div class="music-artist" id="songArtist">اضغط ▶ لتشغيل الموسيقى</div>
+    <div class="music-title" id="songTitle">خليك معايا — عمرو دياب</div>
+    <div class="music-artist" id="songArtist">موسيقى تشبه تفاصيلنا</div>
+    <div class="music-progress" aria-hidden="true"><div class="music-progress-fill" id="musicProgressFill"></div></div>
   </div>
   <div class="music-controls">
-    <button class="music-btn" onclick="prevSong()">⏮</button>
-    <button class="music-btn" id="playBtn" onclick="togglePlay()">▶</button>
-    <button class="music-btn" onclick="nextSong()">⏭</button>
+    <button class="music-btn" aria-label="الأغنية السابقة" onclick="prevSong()">⏮</button>
+    <button class="music-btn" id="playBtn" aria-label="تشغيل الموسيقى" onclick="togglePlay()">▶</button>
+    <button class="music-btn" aria-label="الأغنية التالية" onclick="nextSong()">⏭</button>
   </div>
 </div>
-<audio id="audioPlayer" preload="auto" autoplay style="display:none"></audio>
+<audio id="audioPlayer" preload="none" style="display:none"></audio>
 
 <!-- Gallery -->
 <section class="gallery-section">
-  <div class="gallery-section-title">ألبومنا</div>
+  <div class="gallery-section-title">فصول من حكايتنا</div>
   <div class="album-tabs" id="albumTabs">
     <button class="album-tab active" onclick="filterAlbum('all',this)">📸 الكل <span class="album-count" id="cnt-all">0</span></button>
     <button class="album-tab" onclick="filterAlbum('videos',this)">🎬 فيديوهات <span class="album-count" id="cnt-videos">0</span></button>
@@ -81,8 +82,8 @@
   </div>
   <div id="noPhotos" class="no-photos" style="display:none">
     <div class="no-photos-icon">📸</div>
-    <h3>الألبوم فاضي لسه يا حبيبتي</h3>
-    <p>ارفعي صورنا من صفحة الرفع</p>
+    <h3>نترك هنا مساحة لذكرياتنا القادمة</h3>
+    <p>أضيفي صورة أو فيديو من صفحة الرفع عندما تكونين جاهزة</p>
   </div>
   <div class="gallery-scroll-wrap" id="scrollWrap">
     <div class="gallery-track" id="galleryTrack"></div>
@@ -91,9 +92,9 @@
 </section>
 
 <div class="love-bar">
-  <div class="big-love">بحبك أوي يا هنا يوسف</div>
-  <div style="margin-top:12px;font-size:16px;color:rgba(255,255,255,.5);">معاكِ حياتي أحلى</div>
-  <div class="love-domain">hana-youssef.website • كل يوم بحبك أكتر</div>
+  <div class="big-love">أحبك… بهدوء يليق بنا</div>
+  <div style="margin-top:12px;font-size:16px;color:rgba(255,255,255,.5);">وما زالت أجمل الفصول لم تُكتب بعد</div>
+  <div class="love-domain">hana-youssef.website • هذه الحكاية لنا</div>
 </div>
 
 <!-- QR Modal -->
@@ -102,7 +103,7 @@
     <img src="/assets/logo.png" style="width:70px;height:70px;border-radius:50%;margin:0 auto 12px;border:2px solid #ff6b9d;display:block;"/>
     <h3>باركود هنا ويوسف</h3>
     <img id="qrImg" src="" alt="QR Code" style="border:3px solid #ff6b9d;border-radius:12px;display:block;margin:0 auto 16px;width:220px;height:220px;"/>
-    <p>امسح الباركود وادخل موقعنا يا حبيبتي</p>
+    <p>امسحي الباركود واحتفظي برابط حكايتنا</p>
     <p style="font-size:12px;color:#ff6b9d;">hana-youssef.website</p>
     <button class="modal-close" onclick="closeQR()">تمام</button>
   </div>
@@ -139,14 +140,16 @@ fetch('/api/check-auth').then(r => r.json()).then(d => {
 // ── Floating Hearts ─────────────────────────────────────
 const emojis = ['❤️','💕','💖','💗','💝','💞','🌹','✨','💫','🌸'];
 function spawnHeart() {
+  const container = document.getElementById('heartsContainer');
+  if (container.children.length >= 8) return;
   const h = document.createElement('div');
   h.className = 'heart';
   h.textContent = emojis[Math.floor(Math.random() * emojis.length)];
   h.style.cssText = `left:${Math.random()*100}%;font-size:${12+Math.random()*22}px;animation-duration:${6+Math.random()*8}s;animation-delay:${Math.random()*2}s`;
-  document.getElementById('heartsContainer').appendChild(h);
+  container.appendChild(h);
   setTimeout(() => h.remove(), 16000);
 }
-setInterval(spawnHeart, 2500);
+setInterval(spawnHeart, 5000);
 
 // ── Counter ─────────────────────────────────────────────
 const START = new Date('2025-11-23T00:00:00');
@@ -166,12 +169,11 @@ tick(); setInterval(tick, 1000);
 
 // ── Phrases ─────────────────────────────────────────────
 const PHRASES = [
-  'بحبك أوي يا هنا','حياتي بيكِ أجمل','قلبي ملكك للأبد',
-  'إنتِ نور عيني يا هنا','حبك غير حياتي','لو الدنيا تتكرر هختارك',
-  'إنتِ فرحتي وأملي','بفكر فيكِ كل ثانية','إنتِ الكنز اللي لقيته',
-  'مع بعض للأبد يا هنا','حبيبتي الأولى والأخيرة','أجمل يوم لما قابلتك',
-  'سعادتي بيكِ','أحلى حاجة في حياتي إنتِ','حبيبتي يا هنا',
-  'معاكِ الأيام أحلى','إنتِ فرحة قلبي','أكتر واحدة بحبها'
+  'وجودك يجعل الأيام أخف','أحب طمأنينتي وأنا بجانبك',
+  'أجمل ما في الحكاية أننا نعيشها معًا','في عينيك أجد البيت',
+  'أختارك في كل مرة','ضحكتك من التفاصيل التي أحبها',
+  'معكِ حتى الأيام العادية تصبح ذكرى','أحبك بهدوء يليق بنا',
+  'أنتِ الجزء الجميل من يومي','كل لحظة معكِ لها معنى'
 ];
 const track = document.getElementById('phrasesTrack');
 [...PHRASES, ...PHRASES].forEach(p => {
@@ -198,10 +200,14 @@ function loadSong(i) {
   if (wasPlaying) audioEl.play().catch(()=>{});
 }
 loadSong(0);
-document.getElementById('songArtist').textContent = 'اضغط ▶ لتشغيل الموسيقى';
+document.getElementById('songArtist').textContent = 'موسيقى تشبه تفاصيلنا';
 
-audioEl.addEventListener('play',  () => { document.getElementById('playBtn').textContent = '⏸'; document.getElementById('songArtist').textContent = 'شغّالة... 🎵'; });
-audioEl.addEventListener('pause', () => { document.getElementById('playBtn').textContent = '▶'; document.getElementById('songArtist').textContent = 'اضغط ▶ للاستمرار'; });
+audioEl.addEventListener('play',  () => { document.getElementById('playBtn').textContent = '⏸'; document.getElementById('songArtist').textContent = 'تعمل الآن…'; });
+audioEl.addEventListener('pause', () => { document.getElementById('playBtn').textContent = '▶'; document.getElementById('songArtist').textContent = 'اضغطي ▶ للاستمرار'; });
+audioEl.addEventListener('timeupdate', () => {
+  const fill = document.getElementById('musicProgressFill');
+  fill.style.width = audioEl.duration ? `${(audioEl.currentTime / audioEl.duration) * 100}%` : '0%';
+});
 
 function togglePlay() {
   if (audioEl.paused) audioEl.play().catch(()=>{});
@@ -232,6 +238,7 @@ audioEl.addEventListener('ended', nextSong);
 const HEARTS = ['❤️','💕','💖','🌹','✨','🌙','💎'];
 let allPhotos = [], displayPhotos = [], shownCount = 0, currentAlbum = 'all';
 const PAGE = 24;
+const TRACK_LIMIT = 12;
 
 function filterAlbum(album, el) {
   currentAlbum = album;
@@ -245,7 +252,7 @@ function filterAlbum(album, el) {
   if (displayPhotos.length === 0) {
     const empty = document.createElement('div');
     empty.style.cssText = 'text-align:center;padding:60px 20px;color:rgba(255,107,157,.6);font-size:18px;font-weight:700;width:100%;';
-    empty.textContent = 'مفيش صور هنا لسه — ارفع صور وحدّد الألبوم من صفحة الرفع';
+    empty.textContent = 'لا توجد ذكريات في هذا الفصل بعد — أضيفيها من صفحة الرفع';
     gridEl.appendChild(empty);
     return;
   }
@@ -289,19 +296,26 @@ function makeMediaEl(photo, lazy = false, full = false) {
 }
 
 async function loadGallery() {
-  const r = await fetch('/api/photos');
-  const d = await r.json();
-  const all = d.photos || [];
-  // Songs go to the music player playlist, not the photo gallery
-  const songs = all.filter(p => p.type === 'audio');
-  if (songs.length > 0) {
-    songs.forEach(s => playlist.push({
-      path: s.path,
-      title: s.caption || s.filename.replace(/\.[^.]+$/, '')
-    }));
+  try {
+    const r = await fetch('/api/photos');
+    if (!r.ok) throw new Error('photos request failed');
+    const d = await r.json();
+    const all = d.photos || [];
+    // Songs go to the music player playlist, not the photo gallery
+    const songs = all.filter(p => p.type === 'audio');
+    if (songs.length > 0) {
+      songs.forEach(s => playlist.push({
+        path: s.path,
+        title: s.caption || s.filename.replace(/\.[^.]+$/, '')
+      }));
+    }
+    allPhotos = all.filter(p => p.type !== 'audio');
+    renderGallery();
+  } catch (error) {
+    console.error('Gallery failed to load', error);
+    document.getElementById('noPhotos').style.display = 'block';
+    document.getElementById('noPhotos').innerHTML = '<div class="no-photos-icon">⌛</div><h3>نحتاج لحظة لفتح الذكريات</h3><p>تحققي من الاتصال ثم أعيدي تحميل الصفحة.</p>';
   }
-  allPhotos = all.filter(p => p.type !== 'audio');
-  renderGallery();
 }
 
 function renderGallery() {
@@ -320,8 +334,9 @@ function renderGallery() {
   document.getElementById('noPhotos').style.display = 'none';
   document.getElementById('scrollWrap').style.display = 'block';
 
-  // Horizontal infinite track — ALL media, photos first then videos, duplicated for seamless loop
-  const trackPhotos = [...displayPhotos];
+  // The marquee is decorative. Keep it small so the full library is not
+  // duplicated into hundreds of media elements before the grid loads.
+  const trackPhotos = displayPhotos.slice(0, TRACK_LIMIT);
   function makeTrackCard(p, i) {
     const card = document.createElement('div');
     card.className = 'gallery-card';
@@ -477,8 +492,8 @@ function closeQR(e) {
 
 // ── Birthday Surprise ────────────────────────────────────
 const SPECIAL_DAYS = [
-  { month: 8, day: 7, emoji: '🎂🎉',  title: 'كل سنة وانتي طيبة يا هنا 🎂💕', sub: 'بحبككككك يا روحي وأغلى إنسانة في حياتي ❤️' },
-  { month: 1, day: 1, emoji: '🎆🎊',  title: 'سنة جديدة سعيدة يا هنا ✨🎊',   sub: 'بحبككككك كل سنة وانتي طيبة يا روحي 💕' },
+  { month: 8, day: 7, emoji: '🎂', title: 'يوم جميل وُلدت فيه أنتِ', sub: 'أتمنى لكِ عامًا يشبه قلبك: دافئًا، هادئًا، ومليئًا بالفرح.' },
+  { month: 1, day: 1, emoji: '✨', title: 'عام جديد لنا', sub: 'أتمنى أن يحمل لنا أيامًا أكثر هدوءًا وذكريات أجمل.' },
 ];
 (function checkSpecialDay() {
   const now   = new Date();
@@ -507,7 +522,7 @@ const SPECIAL_DAYS = [
     <div class="bday-sub">${match.sub}</div>
     <div class="bday-hearts">💕 ❤️ 💕 ❤️ 💕</div>
     <button class="bday-close" onclick="this.closest('.bday-overlay').remove();document.querySelector('.bday-confetti')?.remove();">
-      يسلم قلبك يا حبيبتي 💖
+      شكرًا لأنكِ هنا
     </button>
   `;
   document.body.appendChild(ov);

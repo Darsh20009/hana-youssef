@@ -41,7 +41,9 @@ app.use(session({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve only public static assets (css, js, assets) — no HTML, no uploads
+// Serve only public static assets (css, js, assets) — no HTML, no uploads.
+// Media files below have their own long-lived cache headers; keep UI files
+// revalidating so new releases are visible immediately.
 app.use(express.static('public'));
 
 // ── Simple in-memory rate limiter for login ──────────────

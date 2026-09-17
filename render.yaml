@@ -2,7 +2,9 @@ services:
   - type: web
     name: hana-youssef
     runtime: node
-    buildCommand: npm install
+    # Render cannot resolve Replit's internal package-lock URLs.
+    # Install from the public npm registry and ignore the imported lockfile.
+    buildCommand: npm install --package-lock=false --registry=https://registry.npmjs.org
     startCommand: npm start
     envVars:
       - key: SESSION_SECRET

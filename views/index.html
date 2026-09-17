@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>💕 قلبي ملكك يا هنا</title>
+  <title>💕 هنا ويوسف — حكايتنا الجميلة</title>
   <link rel="icon" href="/assets/logo.png"/>
   <link rel="apple-touch-icon" href="/assets/logo.png"/>
   <link rel="manifest" href="/manifest.json"/>
@@ -27,29 +27,30 @@
   </div>
   <div class="site-title">hana-youssef.website</div>
 
-  <div class="main-title">قلبي ملكك يا هنا 💖</div>
-  <div class="sub-title">ادخلي قلبك الصغير يا حبيبتي</div>
+  <div class="main-title">هنا… حيث تبدأ أجمل حكاياتنا 💖</div>
+  <div class="sub-title">كل لحظة بيننا تستحق أن تُحفظ</div>
 
   <div class="day-counter-mini" id="miniCounter">جاري الحساب...</div>
 
-  <div class="login-card">
-    <div class="card-title">شفرة الدخول مخبية في كلب مكا</div>
-    <div class="card-hint">ادخلي الشفرة اللي في قلبك</div>
+  <form class="login-card" id="loginForm" aria-label="تسجيل الدخول إلى ذكرياتنا">
+    <div class="card-title">ادخلي إلى ذكرياتنا</div>
+    <div class="card-hint">كلمة صغيرة تفتح لكِ عالمًا من اللحظات الجميلة</div>
+    <input type="text" name="username" value="hana" autocomplete="username" hidden/>
 
     <div class="input-wrap" style="position:relative;">
-      <input type="password" id="passwordInput" placeholder="ادخلي شفرة قلبك هنا..." autocomplete="off" autofocus style="padding-left:50px;"/>
-      <button onclick="togglePw()" id="eyeBtn" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:22px;line-height:1;color:#d4789c;" title="أظهر/اخفِ">🙈</button>
+      <input type="password" id="passwordInput" name="password" placeholder="اكتبي كلمة المرور هنا..." autocomplete="current-password" required autofocus style="padding-left:50px;"/>
+      <button type="button" onclick="togglePw()" id="eyeBtn" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:22px;line-height:1;color:#d4789c;" title="أظهر/اخفِ">🙈</button>
     </div>
 
     <div class="hint-text">
-      تلميح: <span>يوم ميلاد أجمل بنت في العالم</span>
+      تلميح: <span>تاريخ له مكان خاص في حكايتنا</span>
     </div>
 
-    <button class="login-btn" onclick="doLogin()">ادخلي قلبي 💕</button>
+    <button class="login-btn" type="submit">افتحي ألبومنا 💕</button>
     <div class="error-msg" id="errorMsg"></div>
-  </div>
+  </form>
 
-  <div class="domain-badge">hana-youssef.website • بحبك أوي يا هنا</div>
+  <div class="domain-badge">hana-youssef.website • لحظاتنا، كما نحبها</div>
 </div>
 
 <style>
@@ -63,19 +64,21 @@
 </style>
 
 <script>
-// Floating soft hearts/petals
+// Floating soft hearts/petals — keep the page light on mobile devices.
 const petals = ['🌸','💕','🌷','💗','🌺','✿','💖','🩷','🌹'];
 function spawnPetal() {
+  const container = document.getElementById('heartsContainer');
+  if (container.children.length >= 8) return;
   const h = document.createElement('div');
   h.className = 'heart-petal';
   h.textContent = petals[Math.floor(Math.random() * petals.length)];
   const sz = 12 + Math.random() * 18;
   const dur = 8 + Math.random() * 10;
   h.style.cssText = `left:${Math.random()*100}%;font-size:${sz}px;animation-duration:${dur}s;animation-delay:${Math.random()*3}s`;
-  document.getElementById('heartsContainer').appendChild(h);
+  container.appendChild(h);
   setTimeout(() => h.remove(), (dur + 3) * 1000);
 }
-setInterval(spawnPetal, 2200);
+setInterval(spawnPetal, 5000);
 
 // Counter
 const START = new Date('2025-11-23T00:00:00');
@@ -113,8 +116,9 @@ function togglePw() {
 }
 
 // Login
-document.getElementById('passwordInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') doLogin();
+document.getElementById('loginForm').addEventListener('submit', e => {
+  e.preventDefault();
+  doLogin();
 });
 
 async function doLogin() {
@@ -134,11 +138,11 @@ async function doLogin() {
     });
     const d = await r.json();
     if (d.success) {
-      btn.textContent = isAdmin ? '🔑 أهلاً يا أدمن!' : '💖 أهلاً يا حبيبتي!';
+      btn.textContent = isAdmin ? '🔑 تم فتح مساحة الرفع' : '💖 أهلًا بكِ في ذكرياتنا';
       setTimeout(() => window.location.href = isAdmin ? '/upload' : '/gallery', 700);
     } else {
       err.textContent = d.message;
-      btn.textContent = 'ادخلي قلبي 💕';
+      btn.textContent = 'افتحي ألبومنا 💕';
       btn.disabled = false;
       document.getElementById('passwordInput').value = '';
       document.getElementById('passwordInput').focus();
@@ -146,15 +150,15 @@ async function doLogin() {
       setTimeout(() => document.querySelector('.login-card').style.animation = '', 500);
     }
   } catch {
-    err.textContent = 'في مشكلة في الاتصال، جربي تاني 😢';
-    btn.textContent = 'ادخلي قلبي 💕';
+      err.textContent = 'تعذر فتح الألبوم الآن. جربي مرة أخرى.';
+    btn.textContent = 'افتحي ألبومنا 💕';
     btn.disabled = false;
   }
 }
 // ── Birthday Surprise ────────────────────────────────────
 const SPECIAL_DAYS = [
-  { month: 8,  day: 7, emoji: '🎂🎉',    title: 'كل سنة وانتي طيبة يا هنا 🎂💕', sub: 'بحبككككك يا روحي وأغلى إنسانة في حياتي ❤️' },
-  { month: 1,  day: 1, emoji: '🎆🎊',    title: 'سنة جديدة سعيدة يا هنا ✨🎊',  sub: 'بحبككككك كل سنة وانتي طيبة يا روحي 💕' },
+  { month: 8, day: 7, emoji: '🎂', title: 'يوم جميل وُلدت فيه أنتِ', sub: 'أتمنى لكِ عامًا يشبه قلبك: دافئًا، هادئًا، ومليئًا بالفرح.' },
+  { month: 1, day: 1, emoji: '✨', title: 'عام جديد لنا', sub: 'أتمنى أن يحمل لنا أيامًا أكثر هدوءًا وذكريات أجمل.' },
 ];
 (function checkSpecialDay() {
   const now   = new Date();
@@ -185,7 +189,7 @@ const SPECIAL_DAYS = [
     <div class="bday-sub">${match.sub}</div>
     <div class="bday-hearts">💕 ❤️ 💕 ❤️ 💕</div>
     <button class="bday-close" onclick="this.closest('.bday-overlay').remove();document.querySelector('.bday-confetti').remove();">
-      يسلم قلبك يا حبيبتي 💖
+      شكرًا لأنكِ هنا
     </button>
   `;
   document.body.appendChild(ov);

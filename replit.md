@@ -15,6 +15,12 @@ node server.js
 ```
 يشتغل على port 5000.
 
+## النشر على Render
+- أمر البناء: `npm install --package-lock=false --registry=https://registry.npmjs.org`
+- أمر التشغيل: `npm start`
+- يجب إضافة `LOVE_PASSWORD` يدويًا في Render؛ أما `SESSION_SECRET` فيُنشأ تلقائيًا من `render.yaml`.
+- تم تجاهل `package-lock.json` في أمر البناء لأن النسخة المستوردة تحتوي روابط حزم داخلية خاصة بـ Replit لا يمكن لـ Render الوصول إليها.
+
 ## Required Secrets (Replit Secrets — never commit values)
 | Secret | Description |
 |--------|-------------|
