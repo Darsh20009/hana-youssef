@@ -14,44 +14,50 @@
   <meta name="apple-mobile-web-app-title" content="هنا ويوسف"/>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="/css/love.css"/>
+  <link rel="stylesheet" href="/css/reference.css"/>
 </head>
-<body>
+<body class="reference-login">
 
-<!-- Floating petals/hearts -->
-<div id="heartsContainer" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden;z-index:0;"></div>
+<div id="heartsContainer" class="login-hearts" aria-hidden="true"></div>
 
-<div class="login-page-bg" style="position:relative;z-index:1;">
-
-  <div class="logo-circle" onclick="logoClick()">
-    <img src="/assets/logo.png" alt="هنا ويوسف"/>
-  </div>
-  <div class="site-title">hana-youssef.website</div>
-
-  <div class="main-title">هنا… حيث تبدأ أجمل حكاياتنا 💖</div>
-  <div class="sub-title">كل لحظة بيننا تستحق أن تُحفظ</div>
-
-  <div class="day-counter-mini" id="miniCounter">جاري الحساب...</div>
-
-  <form class="login-card" id="loginForm" aria-label="تسجيل الدخول إلى ذكرياتنا">
-    <div class="card-title">ادخلي إلى ذكرياتنا</div>
-    <div class="card-hint">كلمة صغيرة تفتح لكِ عالمًا من اللحظات الجميلة</div>
-    <input type="text" name="username" value="hana" autocomplete="username" hidden/>
-
-    <div class="input-wrap" style="position:relative;">
-      <input type="password" id="passwordInput" name="password" placeholder="اكتبي كلمة المرور هنا..." autocomplete="current-password" required autofocus style="padding-left:50px;"/>
-      <button type="button" onclick="togglePw()" id="eyeBtn" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:22px;line-height:1;color:#d4789c;" title="أظهر/اخفِ">🙈</button>
+<main class="login-shell">
+  <section class="login-panel">
+    <div class="login-brand" onclick="logoClick()">
+      <div class="login-logo logo-circle">
+        <img src="/assets/logo.png" alt="هنا ويوسف"/>
+      </div>
+      <div class="brand-ar">هنا <span>♥</span></div>
+      <div class="brand-latin">H U N A</div>
+      <div class="brand-signature">Youssef <b>×</b> Her</div>
     </div>
 
-    <div class="hint-text">
-      تلميح: <span>تاريخ له مكان خاص في حكايتنا</span>
+    <div class="login-quote">كل الحكايات جميلة،<br/>لكن حكايتنا مختلفة.</div>
+    <div class="day-counter-mini" id="miniCounter">جاري الحساب...</div>
+
+    <form class="login-card" id="loginForm" aria-label="تسجيل الدخول إلى ذكرياتنا">
+      <input type="text" name="username" value="hana" autocomplete="username" hidden/>
+      <div class="reference-input input-wrap">
+        <span class="input-lock" aria-hidden="true"></span>
+        <input type="password" id="passwordInput" name="password" placeholder="أدخلي كلمة المرور..." autocomplete="current-password" required autofocus/>
+        <button type="button" onclick="togglePw()" id="eyeBtn" title="أظهر/اخفِ كلمة المرور" aria-label="أظهر أو أخفِ كلمة المرور">◉</button>
+      </div>
+      <button class="login-btn reference-login-btn" type="submit">ادخلي هنا <span>→</span></button>
+      <div class="error-msg" id="errorMsg"></div>
+    </form>
+
+    <div class="login-player">
+      <img src="/assets/logo.png" alt="" />
+      <div class="player-copy">
+        <strong>Our Little World</strong>
+        <span>Huna &amp; Youssef</span>
+      </div>
+      <button type="button" aria-label="الأغنية السابقة">‹</button>
+      <button type="button" aria-label="تشغيل الأغنية">Ⅱ</button>
+      <button type="button" aria-label="الأغنية التالية">›</button>
     </div>
-
-    <button class="login-btn" type="submit">افتحي ألبومنا 💕</button>
-    <div class="error-msg" id="errorMsg"></div>
-  </form>
-
-  <div class="domain-badge">hana-youssef.website • لحظاتنا، كما نحبها</div>
-</div>
+    <div class="login-footer">Same People&nbsp; • &nbsp;Beautiful Memories&nbsp; • &nbsp;Always&nbsp; ♡</div>
+  </section>
+</main>
 
 <style>
 .heart-petal {

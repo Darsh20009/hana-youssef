@@ -14,87 +14,94 @@
   <meta name="apple-mobile-web-app-title" content="هنا ويوسف"/>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="/css/love.css"/>
+  <link rel="stylesheet" href="/css/reference.css"/>
 </head>
-<body class="gallery-page">
+<body class="gallery-page reference-dashboard">
 
-<div class="floating-hearts" id="heartsContainer" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden;z-index:1;"></div>
-
-<!-- Header -->
-<header class="site-header">
-  <div class="header-logo">
-    <img src="/assets/logo.png" alt="هنا ويوسف"/>
-    <div>
-      <div class="logo-text">💕 هنا ويوسف</div>
-      <div style="font-size:11px;color:rgba(255,255,255,.35);">hana-youssef.website</div>
+<div class="floating-hearts" id="heartsContainer" aria-hidden="true"></div>
+<div class="dashboard-app">
+  <aside class="dashboard-sidebar">
+    <div class="sidebar-brand">
+      <img src="/assets/logo.png" alt="هنا ويوسف"/>
+      <div class="sidebar-name">هنا <span>♥</span></div>
+      <div class="sidebar-latin">H U N A</div>
     </div>
-  </div>
-  <div class="header-days">
-    <div class="days-number" id="daysNum">264</div>
-    <div class="days-label">يومًا من الحكاية التي نكتبها معًا</div>
-  </div>
-  <div class="header-actions">
-    <button class="btn-small btn-upload" onclick="window.location.href='/upload'">📤 رفع صور وأغاني</button>
-    <button class="btn-small btn-qr" onclick="showQR()">📲 باركود</button>
-    <button class="btn-small btn-logout" onclick="logout()">خروج</button>
-  </div>
-</header>
+    <nav class="dashboard-nav" aria-label="التنقل">
+      <a class="active" href="/gallery"><span>⌂</span> الرئيسية</a>
+      <a href="#memories"><span>▣</span> ذكرياتنا</a>
+      <a href="#message"><span>✉</span> رسائلي لك</a>
+      <a href="#music"><span>♫</span> موسيقانا</a>
+      <a href="#moments"><span>✦</span> لحظات عشوائية</a>
+      <a href="#timeline"><span>◷</span> خطنا الزمني</a>
+    </nav>
+    <div class="sidebar-note">معك<br/>كل شيء أجمل ..<br/><strong>Youssef ♡</strong></div>
+    <button class="sidebar-logout" onclick="logout()">خروج من الحكاية</button>
+  </aside>
 
-<!-- Hero -->
-<section class="hero-section">
-  <div class="love-text">معكِ، للأيام معنى أجمل 💖</div>
-  <div class="love-sub">صور صغيرة… تحمل شعورًا كبيرًا لا يُنسى</div>
-  <div class="full-counter">
-    <div class="counter-box"><div class="counter-num" id="cDays">0</div><div class="counter-lbl">يوم</div></div>
-    <div class="counter-box"><div class="counter-num" id="cHrs">0</div><div class="counter-lbl">ساعة</div></div>
-    <div class="counter-box"><div class="counter-num" id="cMins">0</div><div class="counter-lbl">دقيقة</div></div>
-    <div class="counter-box"><div class="counter-num" id="cSecs">0</div><div class="counter-lbl">ثانية</div></div>
-  </div>
-</section>
+  <div class="dashboard-content">
+    <header class="dashboard-topbar">
+      <div class="dashboard-search"><span>⌕</span><input aria-label="بحث" placeholder="ابحثي في ذكرياتنا ..." /></div>
+      <div class="dashboard-user">
+        <span>♥ مرحبًا بكِ ..</span>
+        <img src="/assets/logo.png" alt="هنا ويوسف"/>
+      </div>
+    </header>
 
-<!-- Phrases ticker -->
-<div class="phrases-scroll" aria-label="كلمات من حكايتنا"><div class="phrases-track" id="phrasesTrack"></div></div>
+    <main class="dashboard-main">
+      <section class="dashboard-hero" aria-label="هنا دائمًا نحن">
+        <img src="/assets/hana-hero.png" alt="هنا دائمًا نحن"/>
+      </section>
 
-<!-- Music Player -->
-<div class="music-bar">
-  <div class="music-icon">♫</div>
-  <div class="music-info">
-    <div class="music-title" id="songTitle">خليك معايا — عمرو دياب</div>
-    <div class="music-artist" id="songArtist">موسيقى تشبه تفاصيلنا</div>
-    <div class="music-progress" aria-hidden="true"><div class="music-progress-fill" id="musicProgressFill"></div></div>
-  </div>
-  <div class="music-controls">
-    <button class="music-btn" aria-label="الأغنية السابقة" onclick="prevSong()">⏮</button>
-    <button class="music-btn" id="playBtn" aria-label="تشغيل الموسيقى" onclick="togglePlay()">▶</button>
-    <button class="music-btn" aria-label="الأغنية التالية" onclick="nextSong()">⏭</button>
+      <section class="dashboard-stats" aria-label="إحصائيات حكايتنا">
+        <article class="stat-card"><span class="stat-icon">▦</span><strong id="daysNum">0</strong><small>يوم معًا ♥</small></article>
+        <article class="stat-card"><span class="stat-icon">▧</span><strong id="cnt-all">0</strong><small>صورة ♥</small></article>
+        <article class="stat-card"><span class="stat-icon">✉</span><strong>86</strong><small>رسالة ♥</small></article>
+        <article class="stat-card"><span class="stat-icon">♥</span><strong>∞</strong><small>لحظة جميلة</small></article>
+      </section>
+
+      <div class="dashboard-columns">
+        <section class="memories-card" id="memories">
+          <div class="section-heading">
+            <h2>أحدث ذكرياتنا</h2>
+            <button type="button" onclick="document.getElementById('albumTabs').scrollIntoView({behavior:'smooth'})">عرض الكل <span>←</span></button>
+          </div>
+          <div class="dashboard-filters" id="albumTabs">
+            <button class="album-tab active" onclick="filterAlbum('all',this)">الكل <span class="album-count" id="cnt-all-filter">0</span></button>
+            <button class="album-tab" onclick="filterAlbum('videos',this)">فيديو <span id="cnt-videos">0</span></button>
+            <button class="album-tab" onclick="filterAlbum('together',this)">معًا <span id="cnt-together">0</span></button>
+            <button class="album-tab" onclick="filterAlbum('her',this)">صورها <span id="cnt-her">0</span></button>
+            <button class="album-tab" onclick="filterAlbum('his',this)">صوري <span id="cnt-his">0</span></button>
+          </div>
+          <div id="noPhotos" class="no-photos" style="display:none">
+            <div class="no-photos-icon">♡</div>
+            <h3>نترك هنا مساحة لذكرياتنا القادمة</h3>
+            <p>أضيفي صورة أو فيديو من صفحة الرفع عندما تكونين جاهزة</p>
+          </div>
+          <div class="gallery-scroll-wrap" id="scrollWrap"><div class="gallery-track" id="galleryTrack"></div></div>
+          <div class="gallery-grid" id="galleryGrid"></div>
+        </section>
+
+        <aside class="message-card" id="message">
+          <div class="tape"></div>
+          <h2>رسالة اليوم</h2>
+          <p>أنتِ الجزء الجميل من كل أيامي ..<br/>وجودك يجعل كل شيء أجمل ..<br/>ممتن لأنكِ هنا دائمًا ..</p>
+          <div class="message-signature">Youssef <span>♡</span></div>
+        </aside>
+      </div>
+
+      <div class="dashboard-lower">
+        <div class="reference-quote">كل شيء معكِ يصبح أجمل ..<br/><strong>Youssef ♡</strong></div>
+        <div class="dashboard-love">نحن لا نوثق الذكريات،<br/><strong>نحن نصنعها.</strong></div>
+      </div>
+    </main>
   </div>
 </div>
-<audio id="audioPlayer" preload="none" style="display:none"></audio>
 
-<!-- Gallery -->
-<section class="gallery-section">
-  <div class="gallery-section-title">فصول من حكايتنا</div>
-  <div class="album-tabs" id="albumTabs">
-    <button class="album-tab active" onclick="filterAlbum('all',this)">📸 الكل <span class="album-count" id="cnt-all">0</span></button>
-    <button class="album-tab" onclick="filterAlbum('videos',this)">🎬 فيديوهات <span class="album-count" id="cnt-videos">0</span></button>
-    <button class="album-tab" onclick="filterAlbum('together',this)">💑 مع بعض <span class="album-count" id="cnt-together">0</span></button>
-    <button class="album-tab" onclick="filterAlbum('her',this)">🌸 صورها <span class="album-count" id="cnt-her">0</span></button>
-    <button class="album-tab" onclick="filterAlbum('his',this)">😎 صوري <span class="album-count" id="cnt-his">0</span></button>
-  </div>
-  <div id="noPhotos" class="no-photos" style="display:none">
-    <div class="no-photos-icon">📸</div>
-    <h3>نترك هنا مساحة لذكرياتنا القادمة</h3>
-    <p>أضيفي صورة أو فيديو من صفحة الرفع عندما تكونين جاهزة</p>
-  </div>
-  <div class="gallery-scroll-wrap" id="scrollWrap">
-    <div class="gallery-track" id="galleryTrack"></div>
-  </div>
-  <div class="gallery-grid" id="galleryGrid"></div>
-</section>
-
-<div class="love-bar">
-  <div class="big-love">أحبك… بهدوء يليق بنا</div>
-  <div style="margin-top:12px;font-size:16px;color:rgba(255,255,255,.5);">وما زالت أجمل الفصول لم تُكتب بعد</div>
-  <div class="love-domain">hana-youssef.website • هذه الحكاية لنا</div>
+<div class="reference-hidden-player" aria-hidden="true">
+  <div class="phrases-scroll"><div class="phrases-track" id="phrasesTrack"></div></div>
+  <div class="music-bar" id="music"><div class="music-icon">♫</div><div class="music-info"><div class="music-title" id="songTitle">خليك معايا — عمرو دياب</div><div class="music-artist" id="songArtist">موسيقى تشبه تفاصيلنا</div><div class="music-progress"><div class="music-progress-fill" id="musicProgressFill"></div></div></div><div class="music-controls"><button class="music-btn" onclick="prevSong()">⏮</button><button class="music-btn" id="playBtn" onclick="togglePlay()">▶</button><button class="music-btn" onclick="nextSong()">⏭</button></div></div>
+  <audio id="audioPlayer" preload="none"></audio>
+  <div id="cDays">0</div><div id="cHrs">0</div><div id="cMins">0</div><div id="cSecs">0</div>
 </div>
 
 <!-- QR Modal -->
@@ -262,6 +269,7 @@ function filterAlbum(album, el) {
 
 function updateCounts() {
   document.getElementById('cnt-all').textContent     = allPhotos.length;
+  document.getElementById('cnt-all-filter').textContent = allPhotos.length;
   document.getElementById('cnt-videos').textContent  = allPhotos.filter(p=>p.type==='video').length;
   document.getElementById('cnt-together').textContent= allPhotos.filter(p=>p.album==='together').length;
   document.getElementById('cnt-her').textContent     = allPhotos.filter(p=>p.album==='her').length;
