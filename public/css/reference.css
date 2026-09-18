@@ -503,6 +503,26 @@
   border-radius: 50%;
 }
 
+.topbar-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-inline-start: 8px;
+  padding: 7px 10px;
+  color: #f8eee5;
+  background: #302a27;
+  border-radius: 16px;
+  font-size: 10px;
+  text-decoration: none;
+  transition: background .2s ease, transform .2s ease;
+}
+
+.topbar-add:hover {
+  color: #fffaf5;
+  background: #57443a;
+  transform: translateY(-1px);
+}
+
 .dashboard-main {
   width: min(100%, 1120px);
   margin: 0 auto;
