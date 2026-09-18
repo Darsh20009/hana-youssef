@@ -339,8 +339,10 @@
   flex-direction: column;
   padding: 24px 16px 20px;
   overflow: hidden;
-  background: rgba(255, 252, 247, .74);
+  background: linear-gradient(180deg, rgba(255, 252, 247, .92), rgba(244, 233, 220, .86));
   border-right: 1px solid var(--line);
+  box-shadow: 8px 0 26px rgba(92, 68, 50, .07);
+  backdrop-filter: blur(10px);
   direction: rtl;
 }
 
@@ -384,6 +386,7 @@
 }
 
 .dashboard-nav a {
+  position: relative;
   display: flex;
   align-items: center;
   min-height: 39px;
@@ -393,7 +396,7 @@
   border-radius: 7px;
   font-size: 12px;
   text-decoration: none;
-  transition: background .2s ease, color .2s ease;
+  transition: background .2s ease, color .2s ease, transform .2s ease, box-shadow .2s ease;
 }
 
 .dashboard-nav a span {
@@ -407,11 +410,26 @@
 .dashboard-nav a:hover,
 .dashboard-nav a.active {
   color: #322821;
-  background: rgba(225, 211, 195, .68);
+  background: linear-gradient(135deg, rgba(235, 220, 204, .9), rgba(221, 202, 183, .7));
+  box-shadow: 0 5px 14px rgba(92, 68, 50, .08);
+  transform: translateX(-2px);
 }
 
 .dashboard-nav a.active {
   font-weight: 700;
+}
+
+.dashboard-nav a.active::before {
+  position: absolute;
+  inset: 8px auto 8px 0;
+  width: 3px;
+  border-radius: 4px;
+  background: #9b4d43;
+  content: '';
+}
+
+.dashboard-nav a.active span {
+  color: #8d382e;
 }
 
 .sidebar-note {
@@ -522,6 +540,70 @@
   color: #fffaf5;
   background: #57443a;
   transform: translateY(-1px);
+}
+
+.topbar-music {
+  min-width: 250px;
+  flex: 1 1 330px;
+  max-width: 370px;
+}
+
+.dashboard-topbar .music-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 6px 9px;
+  background: rgba(255, 252, 247, .78);
+  border: 1px solid rgba(112, 91, 77, .12);
+  border-radius: 18px;
+  box-shadow: 0 4px 14px rgba(92, 68, 50, .07);
+}
+
+.dashboard-topbar .music-icon {
+  width: 29px;
+  height: 29px;
+  flex: 0 0 29px;
+  font-size: 18px;
+}
+
+.dashboard-topbar .music-info {
+  min-width: 0;
+}
+
+.dashboard-topbar .music-title,
+.dashboard-topbar .music-artist {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-topbar .music-title {
+  color: #5b443a;
+  font-size: 11px;
+}
+
+.dashboard-topbar .music-artist {
+  color: #9a8174;
+  font-size: 9px;
+}
+
+.dashboard-topbar .music-progress {
+  height: 2px;
+  margin-top: 4px;
+}
+
+.dashboard-topbar .music-controls {
+  flex: 0 0 auto;
+  gap: 3px;
+}
+
+.dashboard-topbar .music-btn {
+  width: 25px;
+  height: 25px;
+  color: #7b382f;
+  background: rgba(225, 211, 195, .55);
+  font-size: 10px;
 }
 
 .dashboard-main {
@@ -746,8 +828,29 @@
 .message-card {
   min-height: 222px;
   padding: 26px 24px 20px;
-  background: rgba(255, 252, 247, .84);
+  background: linear-gradient(145deg, #fff9dc, #f7edc4);
+  border: 0;
+  border-radius: 3px;
+  box-shadow: 3px 8px 18px rgba(92, 68, 50, .13);
+  transform: rotate(1.2deg);
   direction: rtl;
+}
+
+.message-card::after {
+  position: absolute;
+  right: 15px;
+  bottom: 11px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(141, 61, 52, .18);
+  border-radius: 50%;
+  color: rgba(141, 61, 52, .45);
+  content: '♡';
+  font-family: Georgia, serif;
+  font-size: 22px;
+  line-height: 31px;
+  text-align: center;
+  transform: rotate(-13deg);
 }
 
 .message-card .tape {
@@ -756,7 +859,7 @@
   left: 29px;
   width: 69px;
   height: 26px;
-  background: rgba(202, 171, 139, .55);
+  background: rgba(202, 171, 139, .7);
   transform: rotate(-7deg);
 }
 
@@ -766,7 +869,7 @@
 
 .message-card p {
   margin-top: 22px;
-  color: #74675f;
+  color: #6d5a4d;
   font-family: Georgia, 'Tajawal', serif;
   font-size: 14px;
   line-height: 2;
@@ -850,13 +953,26 @@
   min-height: 112px;
   gap: 8px;
   padding: 12px;
-  background: rgba(245, 238, 228, .74);
-  border: 1px solid rgba(112, 91, 77, .1);
-  border-radius: 8px;
+  background: linear-gradient(145deg, #fff9dc, #f7edc4);
+  border: 0;
+  border-radius: 3px;
+  box-shadow: 2px 6px 13px rgba(92, 68, 50, .1);
+  transform: rotate(-.7deg);
+  transition: transform .2s ease, box-shadow .2s ease;
 }
 
 .written-memory.featured {
-  background: #eadfd3;
+  background: linear-gradient(145deg, #fff5cf, #f0dfaa);
+  transform: rotate(.8deg);
+}
+
+.written-memory:nth-child(3n) {
+  transform: rotate(1.1deg);
+}
+
+.written-memory:hover {
+  box-shadow: 3px 10px 18px rgba(92, 68, 50, .15);
+  transform: translateY(-3px) rotate(0);
 }
 
 .written-heart {
@@ -1223,30 +1339,8 @@
   color: #8f776b;
 }
 
-.reference-hidden-player {
-  position: fixed;
-  inset: auto 0 0;
-  z-index: 19;
-  width: 100%;
-  min-height: 0;
-  padding: 8px 12px 10px;
-  background: rgba(245, 238, 228, .94);
-  border-top: 1px solid var(--line);
-  box-shadow: 0 -8px 24px rgba(92, 68, 50, .08);
-  backdrop-filter: blur(12px);
-}
-
-.reference-hidden-player > div:not(.music-bar),
-.reference-hidden-player > audio {
+.reference-dashboard > #audioPlayer {
   display: none;
-}
-
-.reference-hidden-player .music-bar {
-  margin: 0 auto;
-  padding: 8px 12px;
-  background: transparent;
-  border: 0;
-  box-shadow: none;
 }
 
 @media (max-width: 900px) {
@@ -1294,6 +1388,14 @@
 
   .dashboard-topbar {
     padding: 10px 16px;
+    flex-wrap: wrap;
+  }
+
+  .topbar-music {
+    order: 3;
+    width: 100%;
+    max-width: none;
+    flex-basis: 100%;
   }
 
   .dashboard-main {
@@ -1345,6 +1447,10 @@
 
   .dashboard-search {
     width: 55%;
+  }
+
+  .topbar-music {
+    min-width: 0;
   }
 
   .dashboard-main {

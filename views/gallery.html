@@ -220,12 +220,14 @@ const PHRASES = [
   'أنتِ الجزء الجميل من يومي','كل لحظة معكِ لها معنى'
 ];
 const track = document.getElementById('phrasesTrack');
-[...PHRASES, ...PHRASES].forEach(p => {
-  const el = document.createElement('div');
-  el.className = 'phrase-pill';
-  el.textContent = p;
-  track.appendChild(el);
-});
+if (track) {
+  [...PHRASES, ...PHRASES].forEach(p => {
+    const el = document.createElement('div');
+    el.className = 'phrase-pill';
+    el.textContent = p;
+    track.appendChild(el);
+  });
+}
 
 // ── Local Audio Player with playlist ─────────────────────
 const audioEl = document.getElementById('audioPlayer');
@@ -234,6 +236,8 @@ let playlist = [{
   title: 'خليك معايا — عمرو دياب'
 }];
 let songIndex = 0;
+let activeVideo = null;
+let musicPausedByVideo = false;
 
 function loadSong(i) {
   songIndex = (i + playlist.length) % playlist.length;
@@ -253,6 +257,27 @@ audioEl.addEventListener('timeupdate', () => {
   fill.style.width = audioEl.duration ? `${(audioEl.currentTime / audioEl.duration) * 100}%` : '0%';
 });
 
+function startBackgroundMusic() {
+  if (!audioEl.src || !audioEl.paused) return;
+  audioEl.play().catch(() => {
+    // Browsers can block audible autoplay until the first user gesture.
+  });
+}
+
+function pauseMusicForVideo(video) {
+  if (audioEl.paused) return;
+  activeVideo = video;
+  musicPausedByVideo = true;
+  audioEl.pause();
+}
+
+function resumeMusicAfterVideo(video) {
+  if (activeVideo !== video || !musicPausedByVideo) return;
+  activeVideo = null;
+  musicPausedByVideo = false;
+  startBackgroundMusic();
+}
+
 function togglePlay() {
   if (audioEl.paused) audioEl.play().catch(()=>{});
   else audioEl.pause();
@@ -262,13 +287,12 @@ function prevSong()  { loadSong(songIndex - 1); audioEl.play().catch(()=>{}); }
 // Advance to next song when current one ends (loops back to first at the end)
 audioEl.addEventListener('ended', nextSong);
 
-// Auto-play on first user interaction (browsers block autoplay without interaction)
+// Try to start in the background immediately, then retry after the first
+// interaction when the browser's autoplay policy allows audible playback.
+startBackgroundMusic();
 (function() {
-  let started = false;
   function startMusic() {
-    if (started) return;
-    started = true;
-    audioEl.play().catch(() => {});
+    startBackgroundMusic();
     document.removeEventListener('touchstart', startMusic);
     document.removeEventListener('click', startMusic);
     document.removeEventListener('keydown', startMusic);
@@ -331,6 +355,9 @@ function makeMediaEl(photo, lazy = false, full = false) {
   if (photo.type === 'video') {
     const el = document.createElement('video');
     el.muted = true; el.loop = true; el.playsInline = true; el.preload = 'none';
+    el.addEventListener('play', () => pauseMusicForVideo(el));
+    el.addEventListener('pause', () => resumeMusicAfterVideo(el));
+    el.addEventListener('ended', () => resumeMusicAfterVideo(el));
     if (lazy) { el.dataset.src = photo.path; videoObserver.observe(el); }
     else       { el.src = photo.path; }
     return el;
