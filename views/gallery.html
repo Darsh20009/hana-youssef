@@ -502,6 +502,7 @@ const videoObserver = new IntersectionObserver(entries => {
       v.src = v.dataset.src;
       delete v.dataset.src;
       videoObserver.unobserve(v);
+      v.play().catch(() => {});
     }
   });
 }, { rootMargin: '200px' });
@@ -509,12 +510,20 @@ const videoObserver = new IntersectionObserver(entries => {
 function makeMediaEl(photo, lazy = false, full = false) {
   if (photo.type === 'video') {
     const el = document.createElement('video');
-    el.muted = true; el.loop = true; el.playsInline = true; el.preload = 'none';
+    el.muted = true;
+    el.defaultMuted = true;
+    el.autoplay = true;
+    el.loop = true;
+    el.playsInline = true;
+    el.preload = full ? 'auto' : 'metadata';
     el.addEventListener('play', () => pauseMusicForVideo(el));
     el.addEventListener('pause', () => resumeMusicAfterVideo(el));
     el.addEventListener('ended', () => resumeMusicAfterVideo(el));
     if (lazy) { el.dataset.src = photo.path; videoObserver.observe(el); }
-    else       { el.src = photo.path; }
+    else {
+      el.src = photo.path;
+      el.play().catch(() => {});
+    }
     return el;
   }
   const el = document.createElement('img');
@@ -764,7 +773,12 @@ function renderLightboxItem(photo) {
   content.innerHTML = '';
   const el = makeMediaEl(photo, false, true);
   el.style.cssText = 'max-width:95vw;max-height:85vh;border-radius:12px;';
-  if (photo.type === 'video') { el.controls = true; el.autoplay = true; }
+  if (photo.type === 'video') {
+    el.controls = true;
+    el.autoplay = true;
+    el.muted = true;
+    el.play().catch(() => {});
+  }
   content.appendChild(el);
   document.getElementById('lightboxCaption').textContent = photo.caption || '';
 }
