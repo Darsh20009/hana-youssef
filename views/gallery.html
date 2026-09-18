@@ -70,7 +70,9 @@
       </section>
 
       <section class="dashboard-stats" aria-label="إحصائيات حكايتنا">
-        <article class="stat-card"><span class="stat-icon">▦</span><strong id="daysNum">0</strong><small>يوم معًا ♥</small></article>
+        <article class="stat-card stat-card-clickable" id="daysCard" role="button" tabindex="0" aria-label="عرض تفاصيل مدة حكايتنا" onclick="openTimeModal()" onkeydown="if(event.key==='Enter'||event.key===' ') { event.preventDefault(); openTimeModal(); }">
+          <span class="stat-icon">▦</span><strong id="daysNum">0</strong><small>يوم معًا ♥</small>
+        </article>
         <article class="stat-card"><span class="stat-icon">▧</span><strong id="cnt-all">0</strong><small>صورة ♥</small></article>
         <article class="stat-card"><span class="stat-icon">✉</span><strong id="cnt-messages">0</strong><small>رسالة ♥</small></article>
         <article class="stat-card"><span class="stat-icon">♥</span><strong>∞</strong><small>لحظة جميلة</small></article>
@@ -150,6 +152,26 @@
 
 <audio id="audioPlayer" preload="auto" autoplay></audio>
 
+<!-- Relationship duration details -->
+<div class="modal-overlay" id="timeModal" onclick="closeTimeModal(event)">
+  <div class="modal-card time-modal-card" role="dialog" aria-modal="true" aria-labelledby="timeModalTitle">
+    <button type="button" class="time-modal-close" onclick="closeTimeModal()" aria-label="إغلاق">×</button>
+    <div class="time-modal-heart">♡</div>
+    <h3 id="timeModalTitle">حكايتنا بالتفصيل</h3>
+    <p class="time-modal-subtitle">من 23 نوفمبر 2025 وحتى الآن</p>
+    <div class="time-detail-grid">
+      <div class="time-detail"><strong id="elapsedYears">0</strong><span>سنة</span></div>
+      <div class="time-detail"><strong id="elapsedMonths">0</strong><span>شهر</span></div>
+      <div class="time-detail"><strong id="elapsedDays">0</strong><span>يوم</span></div>
+      <div class="time-detail"><strong id="elapsedHours">0</strong><span>ساعة</span></div>
+      <div class="time-detail"><strong id="elapsedMinutes">0</strong><span>دقيقة</span></div>
+      <div class="time-detail"><strong id="elapsedSeconds">0</strong><span>ثانية</span></div>
+    </div>
+    <div class="time-total" id="timeTotal">معًا منذ 0 يوم ♥</div>
+    <div class="time-total time-total-soft" id="timeTotalExact">كل ثانية معكِ لها معنى</div>
+  </div>
+</div>
+
 <!-- QR Modal -->
 <div class="modal-overlay" id="qrModal" onclick="closeQR(event)">
   <div class="modal-card">
@@ -207,15 +229,81 @@ setInterval(spawnHeart, 5000);
 
 // ── Counter ─────────────────────────────────────────────
 const START = new Date('2025-11-23T00:00:00');
-function tick() {
-  const diff = new Date() - START;
-  const d = Math.floor(diff / 86400000);
-  const h = Math.floor((diff % 86400000) / 3600000);
-  const m = Math.floor((diff % 3600000) / 60000);
-  const s = Math.floor((diff % 60000) / 1000);
-  document.getElementById('daysNum').textContent = d;
+const DAY_MS = 86400000;
+const HOUR_MS = 3600000;
+const MINUTE_MS = 60000;
+
+function numberAr(value) {
+  return Number(value).toLocaleString('ar-EG');
 }
-tick(); setInterval(tick, 1000);
+
+function elapsedDetails(now = new Date()) {
+  let cursor = new Date(START);
+  let years = 0;
+  let months = 0;
+
+  while (true) {
+    const next = new Date(cursor);
+    next.setFullYear(next.getFullYear() + 1);
+    if (next > now) break;
+    cursor = next;
+    years++;
+  }
+  while (months < 12) {
+    const next = new Date(cursor);
+    next.setMonth(next.getMonth() + 1);
+    if (next > now) break;
+    cursor = next;
+    months++;
+  }
+
+  const diff = Math.max(0, now - START);
+  const remainder = Math.max(0, now - cursor);
+  const days = Math.floor(remainder / DAY_MS);
+  const hours = Math.floor((remainder % DAY_MS) / HOUR_MS);
+  const minutes = Math.floor((remainder % HOUR_MS) / MINUTE_MS);
+  const seconds = Math.floor((remainder % MINUTE_MS) / 1000);
+
+  return {
+    years, months, days, hours, minutes, seconds,
+    totalDays: Math.floor(diff / DAY_MS),
+    totalHours: Math.floor(diff / HOUR_MS),
+    totalMinutes: Math.floor(diff / MINUTE_MS),
+    totalSeconds: Math.floor(diff / 1000)
+  };
+}
+
+function renderElapsedDetails(details) {
+  document.getElementById('daysNum').textContent = numberAr(details.totalDays);
+  document.getElementById('elapsedYears').textContent = numberAr(details.years);
+  document.getElementById('elapsedMonths').textContent = numberAr(details.months);
+  document.getElementById('elapsedDays').textContent = numberAr(details.days);
+  document.getElementById('elapsedHours').textContent = numberAr(details.hours);
+  document.getElementById('elapsedMinutes').textContent = numberAr(details.minutes);
+  document.getElementById('elapsedSeconds').textContent = numberAr(details.seconds);
+  document.getElementById('timeTotal').textContent =
+    `معًا منذ ${numberAr(details.totalDays)} يوم ♥`;
+  document.getElementById('timeTotalExact').textContent =
+    `يعادل ${numberAr(details.totalHours)} ساعة · ${numberAr(details.totalMinutes)} دقيقة · ${numberAr(details.totalSeconds)} ثانية`;
+}
+
+function tick() {
+  renderElapsedDetails(elapsedDetails());
+}
+tick();
+setInterval(tick, 1000);
+
+function openTimeModal() {
+  renderElapsedDetails(elapsedDetails());
+  document.getElementById('timeModal').classList.add('active');
+}
+
+function closeTimeModal(event) {
+  const modal = document.getElementById('timeModal');
+  if (!event || event.target === modal || event.target.classList.contains('time-modal-close')) {
+    modal.classList.remove('active');
+  }
+}
 
 // ── Phrases ─────────────────────────────────────────────
 const PHRASES = [
@@ -763,7 +851,10 @@ document.querySelectorAll('.dashboard-nav a[href^="#"]').forEach(link => {
   });
 });
 document.addEventListener('keydown', event => {
-  if (event.key === 'Escape') closeMessageDrawer();
+  if (event.key === 'Escape') {
+    closeMessageDrawer();
+    closeTimeModal();
+  }
 });
 
 // ── Secret keyboard shortcut for upload ─────────────────

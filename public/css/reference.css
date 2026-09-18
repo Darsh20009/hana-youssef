@@ -1121,6 +1121,105 @@
   100% { box-shadow: 0 0 0 12px rgba(164, 88, 74, 0), var(--shadow-paper); }
 }
 
+.stat-card-clickable {
+  cursor: pointer;
+  transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+.stat-card-clickable:hover,
+.stat-card-clickable:focus-visible {
+  outline: none;
+  background: rgba(255, 248, 238, .98);
+  box-shadow: 0 8px 20px rgba(92, 68, 50, .14);
+  transform: translateY(-2px);
+}
+
+.time-modal-card {
+  position: relative;
+  max-width: 520px;
+  padding: 28px 24px 22px;
+}
+
+.time-modal-heart {
+  color: #9b4d43;
+  font-family: Georgia, serif;
+  font-size: 30px;
+  line-height: 1;
+}
+
+.time-modal-card h3 {
+  margin: 8px 0 4px;
+}
+
+.time-modal-subtitle {
+  margin-bottom: 18px;
+  color: #9a877a;
+  font-size: 12px;
+}
+
+.time-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 9px;
+}
+
+.time-detail {
+  padding: 12px 6px 10px;
+  background: rgba(245, 238, 228, .7);
+  border: 1px solid rgba(112, 91, 77, .1);
+  border-radius: 9px;
+}
+
+.time-detail strong,
+.time-detail span {
+  display: block;
+}
+
+.time-detail strong {
+  color: #6f3932;
+  font-family: Georgia, serif;
+  font-size: 25px;
+  line-height: 1.1;
+}
+
+.time-detail span {
+  margin-top: 5px;
+  color: #8b786c;
+  font-size: 11px;
+}
+
+.time-total {
+  margin-top: 17px;
+  color: #5e4036;
+  font-family: Georgia, 'Tajawal', serif;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.time-total-soft {
+  margin-top: 6px;
+  color: #a08375;
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.time-modal-close {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  color: #7b5d4f;
+  background: rgba(225, 211, 195, .5);
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  font: inherit;
+  font-size: 19px;
+}
+
 /* ── Reference upload page ───────────────────────────────── */
 .reference-upload {
   min-height: 100vh;
@@ -1556,6 +1655,22 @@
 
   .dashboard-main {
     padding-inline: 10px;
+  }
+
+  .time-modal-card {
+    padding: 25px 14px 18px;
+  }
+
+  .time-detail-grid {
+    gap: 6px;
+  }
+
+  .time-detail {
+    padding-inline: 3px;
+  }
+
+  .time-detail strong {
+    font-size: 20px;
   }
 
   .dashboard-hero img {
