@@ -1,0 +1,1 @@
+- [MongoDB Atlas secret formatting](mongodb-secret-setup.md) — Atlas SRV URLs must be pasted without whitespace or line breaks inside the hostname.
