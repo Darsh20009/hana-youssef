@@ -1097,6 +1097,15 @@
   line-height: 1.9;
 }
 
+.reference-dashboard #memories,
+.reference-dashboard #message,
+.reference-dashboard #music,
+.reference-dashboard #moments,
+.reference-dashboard #timeline {
+  scroll-margin-top: 14px;
+  scroll-margin-bottom: 96px;
+}
+
 /* ── Reference upload page ───────────────────────────────── */
 .reference-upload {
   min-height: 100vh;

@@ -696,9 +696,16 @@ async function logout() {
   window.location.href = '/';
 }
 
-// Keep the sidebar navigation visually in sync with the section being opened.
+// Keep the sidebar navigation usable on mobile, where it is fixed to the
+// bottom edge and a normal hash jump can hide the target behind the nav.
 document.querySelectorAll('.dashboard-nav a[href^="#"]').forEach(link => {
-  link.addEventListener('click', () => {
+  link.addEventListener('click', event => {
+    event.preventDefault();
+    const target = document.getElementById(link.getAttribute('href').slice(1));
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      history.replaceState(null, '', link.getAttribute('href'));
+    }
     document.querySelectorAll('.dashboard-nav a').forEach(item => item.classList.remove('active'));
     link.classList.add('active');
   });

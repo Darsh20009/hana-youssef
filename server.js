@@ -42,6 +42,8 @@ app.set('trust proxy', 1);
 
 const UPLOADS_DIR = 'uploads';
 const DATA_FILE   = path.join('data', 'photos.json');
+const MESSAGES_FILE = path.join('data', 'messages.json');
+const EVENTS_FILE   = path.join('data', 'events.json');
 const ATTACHED_MESSAGES_FILE = path.join('attached_assets', 'Pasted---1789748032217_1789748032218.txt');
 const MONGODB_URI = process.env.MONGODB_URI;
 const MONGODB_DB  = process.env.MONGODB_DB || 'hana_youssef';
@@ -140,6 +142,18 @@ function loadPhotos() {
 function savePhotos(photos) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(photos, null, 2));
 }
+function loadList(file) {
+  if (!fs.existsSync(file)) return [];
+  try {
+    const value = JSON.parse(fs.readFileSync(file, 'utf8'));
+    return Array.isArray(value) ? value : [];
+  } catch {
+    return [];
+  }
+}
+function saveList(file, values) {
+  fs.writeFileSync(file, JSON.stringify(values, null, 2));
+}
 
 function mediaDocument(entry) {
   return {
@@ -223,7 +237,8 @@ async function removeMedia(filename) {
 }
 
 async function listMessages() {
-  if (!mongoDb) return [];
+  if (!mongoDb) return loadList(MESSAGES_FILE)
+    .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
   return mongoDb.collection('messages')
     .find({}, { projection: { _id: 0 } })
     .sort({ createdAt: -1 })
@@ -231,18 +246,30 @@ async function listMessages() {
 }
 
 async function createMessage(message) {
-  if (!mongoDb) return message;
+  if (!mongoDb) {
+    const messages = loadList(MESSAGES_FILE);
+    messages.push(message);
+    saveList(MESSAGES_FILE, messages);
+    return message;
+  }
   await mongoDb.collection('messages').insertOne(message);
   return message;
 }
 
 async function removeMessage(id) {
-  if (!mongoDb) return { deletedCount: 0 };
+  if (!mongoDb) {
+    const messages = loadList(MESSAGES_FILE);
+    const remaining = messages.filter(message => message.id !== id);
+    saveList(MESSAGES_FILE, remaining);
+    return { deletedCount: messages.length - remaining.length };
+  }
   return mongoDb.collection('messages').deleteOne({ id });
 }
 
 async function listEvents() {
-  if (!mongoDb) return [];
+  if (!mongoDb) return loadList(EVENTS_FILE)
+    .sort((a, b) => String(a.date || '').localeCompare(String(b.date || ''))
+      || String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
   return mongoDb.collection('events')
     .find({}, { projection: { _id: 0 } })
     .sort({ date: 1, createdAt: -1 })
@@ -250,13 +277,23 @@ async function listEvents() {
 }
 
 async function createEvent(event) {
-  if (!mongoDb) return event;
+  if (!mongoDb) {
+    const events = loadList(EVENTS_FILE);
+    events.push(event);
+    saveList(EVENTS_FILE, events);
+    return event;
+  }
   await mongoDb.collection('events').insertOne(event);
   return event;
 }
 
 async function removeEvent(id) {
-  if (!mongoDb) return { deletedCount: 0 };
+  if (!mongoDb) {
+    const events = loadList(EVENTS_FILE);
+    const remaining = events.filter(event => event.id !== id);
+    saveList(EVENTS_FILE, remaining);
+    return { deletedCount: events.length - remaining.length };
+  }
   return mongoDb.collection('events').deleteOne({ id });
 }
 
@@ -274,10 +311,14 @@ function splitMessageText(text, maxLength = 3600) {
 }
 
 async function seedAttachedMessages() {
-  if (!mongoDb || !fs.existsSync(ATTACHED_MESSAGES_FILE)) return;
-  const messages = mongoDb.collection('messages');
   const seedKey = 'attached-love-messages';
-  if (await messages.countDocuments({ seedKey })) return;
+  let alreadySeeded;
+  if (mongoDb) {
+    alreadySeeded = await mongoDb.collection('messages').countDocuments({ seedKey });
+  } else {
+    alreadySeeded = loadList(MESSAGES_FILE).some(message => message.seedKey === seedKey);
+  }
+  if (alreadySeeded || !fs.existsSync(ATTACHED_MESSAGES_FILE)) return;
 
   const raw = fs.readFileSync(ATTACHED_MESSAGES_FILE, 'utf8').trim();
   const start = raw.indexOf('عايز اقولك');
@@ -285,7 +326,7 @@ async function seedAttachedMessages() {
   const chunks = splitMessageText(loveText);
   if (!chunks.length) return;
 
-  await messages.insertMany(chunks.map((body, index) => ({
+  const seeded = chunks.map((body, index) => ({
     id: `${seedKey}-${index + 1}`,
     seedKey,
     title: `رسالة من قلبي ليكي ${index + 1}`,
@@ -293,7 +334,12 @@ async function seedAttachedMessages() {
     category: 'حبنا',
     memoryDate: '',
     createdAt: new Date().toISOString()
-  })), { ordered: true });
+  }));
+  if (mongoDb) {
+    await mongoDb.collection('messages').insertMany(seeded, { ordered: true });
+  } else {
+    saveList(MESSAGES_FILE, loadList(MESSAGES_FILE).concat(seeded));
+  }
   console.log(`✅ Added ${chunks.length} written memories from the attached messages`);
 }
 
@@ -390,8 +436,11 @@ async function makeThumb(filename) {
 // ── Protected Media Serving (cached) ─────────────────────
 app.get('/media/:filename', requireAuth, (req, res) => {
   const name = path.basename(req.params.filename);
-  const fp = path.join(__dirname, 'uploads', name);
-  if (!fs.existsSync(fp)) return res.status(404).send('Not found');
+  const fp = [
+    path.join(__dirname, 'uploads', name),
+    path.join(__dirname, 'attached_assets', name)
+  ].find(candidate => fs.existsSync(candidate));
+  if (!fp) return res.status(404).send('Not found');
   res.sendFile(fp, { maxAge: '7d', immutable: true });
 });
 
