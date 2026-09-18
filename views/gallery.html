@@ -84,10 +84,30 @@
         <aside class="message-card" id="message">
           <div class="tape"></div>
           <h2>رسالة اليوم</h2>
-          <p>أنتِ الجزء الجميل من كل أيامي ..<br/>وجودك يجعل كل شيء أجمل ..<br/>ممتن لأنكِ هنا دائمًا ..</p>
-          <div class="message-signature">Youssef <span>♡</span></div>
+          <p id="dailyMessageText">أنتِ الجزء الجميل من كل أيامي ..<br/>وجودك يجعل كل شيء أجمل ..<br/>ممتن لأنكِ هنا دائمًا ..</p>
+          <div class="message-signature" id="dailyMessageSignature">Youssef <span>♡</span></div>
         </aside>
       </div>
+
+      <section class="written-dashboard-card" id="writtenMemories">
+        <div class="section-heading">
+          <h2>ذكرياتنا الكتابية</h2>
+          <span class="section-soft-label">كلام يفضل بينا</span>
+        </div>
+        <div id="writtenMemoryList" class="written-memory-list">
+          <div class="written-empty">لسه هنملأ المكان بكلامنا الحلو ♡</div>
+        </div>
+      </section>
+
+      <section class="timeline-dashboard-card" id="timeline">
+        <div class="section-heading">
+          <h2>خطنا الزمني</h2>
+          <span class="section-soft-label">مواعيد لا ننساها</span>
+        </div>
+        <div id="timelineList" class="timeline-list">
+          <div class="written-empty">أضيفي أول تاريخ مهم من صفحة الإضافة ✦</div>
+        </div>
+      </section>
 
       <div class="dashboard-lower">
         <div class="reference-quote">كل شيء معكِ يصبح أجمل ..<br/><strong>Youssef ♡</strong></div>
@@ -244,6 +264,7 @@ audioEl.addEventListener('ended', nextSong);
 // ── Gallery ───────────────────────────────────────────────
 const HEARTS = ['❤️','💕','💖','🌹','✨','🌙','💎'];
 let allPhotos = [], displayPhotos = [], shownCount = 0, currentAlbum = 'all';
+let writtenMessages = [], timelineEvents = [], dailyMessageTimer = null;
 const PAGE = 24;
 const TRACK_LIMIT = 12;
 
@@ -305,10 +326,20 @@ function makeMediaEl(photo, lazy = false, full = false) {
 
 async function loadGallery() {
   try {
-    const r = await fetch('/api/photos');
-    if (!r.ok) throw new Error('photos request failed');
-    const d = await r.json();
+    const [photosResponse, messagesResponse, eventsResponse] = await Promise.all([
+      fetch('/api/photos'),
+      fetch('/api/messages'),
+      fetch('/api/events')
+    ]);
+    if (!photosResponse.ok) throw new Error('photos request failed');
+    const d = await photosResponse.json();
+    const messagesData = messagesResponse.ok ? await messagesResponse.json() : { messages: [] };
+    const eventsData = eventsResponse.ok ? await eventsResponse.json() : { events: [] };
     const all = d.photos || [];
+    writtenMessages = messagesData.messages || [];
+    timelineEvents = eventsData.events || [];
+    renderWrittenMemories();
+    renderTimeline();
     // Songs go to the music player playlist, not the photo gallery
     const songs = all.filter(p => p.type === 'audio');
     if (songs.length > 0) {
@@ -324,6 +355,53 @@ async function loadGallery() {
     document.getElementById('noPhotos').style.display = 'block';
     document.getElementById('noPhotos').innerHTML = '<div class="no-photos-icon">⌛</div><h3>نحتاج لحظة لفتح الذكريات</h3><p>تحققي من الاتصال ثم أعيدي تحميل الصفحة.</p>';
   }
+}
+
+function renderWrittenMemories() {
+  const list = document.getElementById('writtenMemoryList');
+  if (!writtenMessages.length) {
+    list.innerHTML = '<div class="written-empty">لسه هنملأ المكان بكلامنا الحلو ♡</div>';
+    return;
+  }
+  list.innerHTML = writtenMessages.slice(0, 6).map((message, index) => `
+    <article class="written-memory ${index === 0 ? 'featured' : ''}">
+      <span class="written-heart">♡</span>
+      <div class="written-memory-copy">
+        <div class="written-memory-top"><strong>${esc(message.title)}</strong><small>${esc(message.memoryDate || message.category || '')}</small></div>
+        <p>${esc(message.body)}</p>
+      </div>
+    </article>`).join('');
+
+  const first = writtenMessages[0];
+  const dailyText = document.getElementById('dailyMessageText');
+  const dailySignature = document.getElementById('dailyMessageSignature');
+  if (dailyText && first) {
+    dailyText.textContent = first.body;
+    dailySignature.innerHTML = `${esc(first.title || 'Youssef')} <span>♡</span>`;
+  }
+  if (dailyMessageTimer) clearInterval(dailyMessageTimer);
+  if (writtenMessages.length > 1) {
+    let index = 0;
+    dailyMessageTimer = setInterval(() => {
+      index = (index + 1) % writtenMessages.length;
+      const current = writtenMessages[index];
+      if (dailyText) dailyText.textContent = current.body;
+      if (dailySignature) dailySignature.innerHTML = `${esc(current.title || 'Youssef')} <span>♡</span>`;
+    }, 9000);
+  }
+}
+
+function renderTimeline() {
+  const list = document.getElementById('timelineList');
+  if (!timelineEvents.length) {
+    list.innerHTML = '<div class="written-empty">أضيفي أول تاريخ مهم من صفحة الإضافة ✦</div>';
+    return;
+  }
+  list.innerHTML = timelineEvents.slice(0, 8).map(event => `
+    <article class="timeline-item">
+      <time>${esc(event.date)}</time>
+      <div><strong>${esc(event.title)}</strong><span>${esc(event.note || '')}</span></div>
+    </article>`).join('');
 }
 
 function renderGallery() {
