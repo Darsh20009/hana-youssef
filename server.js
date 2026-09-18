@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const QRCode = require('qrcode');
 const sharp = require('sharp');
+const { MongoClient } = require('mongodb');
 
 // ── Require secrets at startup ───────────────────────────
 const SESSION_SECRET = process.env.SESSION_SECRET;
@@ -37,6 +38,10 @@ app.set('trust proxy', 1);
 
 const UPLOADS_DIR = 'uploads';
 const DATA_FILE   = path.join('data', 'photos.json');
+const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_DB  = process.env.MONGODB_DB || 'hana_youssef';
+let mongoClient = null;
+let mongoDb = null;
 
 // Ensure directories exist
 ['uploads', 'data'].forEach(d => {
@@ -121,6 +126,125 @@ function loadPhotos() {
 }
 function savePhotos(photos) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(photos, null, 2));
+}
+
+function mediaDocument(entry) {
+  return {
+    ...entry,
+    kind: 'media',
+    category: String(entry.category || entry.album || '').slice(0, 50)
+  };
+}
+
+async function initDatabase() {
+  if (!MONGODB_URI) {
+    console.warn('⚠️ MONGODB_URI is not set; using the local JSON store.');
+    return;
+  }
+
+  mongoClient = new MongoClient(MONGODB_URI, {
+    serverSelectionTimeoutMS: 10000,
+    connectTimeoutMS: 10000
+  });
+  await mongoClient.connect();
+  mongoDb = mongoClient.db(MONGODB_DB);
+
+  const memories = mongoDb.collection('memories');
+  await memories.createIndex({ kind: 1, uploadedAt: -1 });
+  await mongoDb.collection('messages').createIndex({ createdAt: -1 });
+  await mongoDb.collection('events').createIndex({ date: 1 });
+
+  const mediaCount = await memories.countDocuments({ kind: 'media' });
+  if (mediaCount === 0) {
+    const legacy = loadPhotos();
+    if (legacy.length > 0) {
+      await memories.insertMany(legacy.map(mediaDocument), { ordered: false });
+      console.log(`✅ Migrated ${legacy.length} media records to MongoDB`);
+    }
+  }
+  console.log(`✅ MongoDB connected — database: ${MONGODB_DB}`);
+}
+
+async function listMedia() {
+  if (!mongoDb) return loadPhotos();
+  return mongoDb.collection('memories')
+    .find({ kind: 'media' }, { projection: { _id: 0 } })
+    .sort({ uploadedAt: -1 })
+    .toArray();
+}
+
+async function insertMedia(entries) {
+  if (mongoDb) {
+    await mongoDb.collection('memories').insertMany(entries.map(mediaDocument), { ordered: true });
+    return;
+  }
+  const photos = loadPhotos();
+  savePhotos(photos.concat(entries));
+}
+
+async function updateMedia(filename, changes) {
+  if (mongoDb) {
+    return mongoDb.collection('memories').updateOne(
+      { kind: 'media', filename },
+      { $set: changes }
+    );
+  }
+  const photos = loadPhotos();
+  const photo = photos.find(p => p.filename === filename);
+  if (!photo) return { matchedCount: 0 };
+  Object.assign(photo, changes);
+  savePhotos(photos);
+  return { matchedCount: 1 };
+}
+
+async function removeMedia(filename) {
+  if (mongoDb) {
+    return mongoDb.collection('memories').deleteOne({ kind: 'media', filename });
+  }
+  const photos = loadPhotos();
+  const idx = photos.findIndex(p => p.filename === filename);
+  if (idx === -1) return { deletedCount: 0 };
+  photos.splice(idx, 1);
+  savePhotos(photos);
+  return { deletedCount: 1 };
+}
+
+async function listMessages() {
+  if (!mongoDb) return [];
+  return mongoDb.collection('messages')
+    .find({}, { projection: { _id: 0 } })
+    .sort({ createdAt: -1 })
+    .toArray();
+}
+
+async function createMessage(message) {
+  if (!mongoDb) return message;
+  await mongoDb.collection('messages').insertOne(message);
+  return message;
+}
+
+async function removeMessage(id) {
+  if (!mongoDb) return { deletedCount: 0 };
+  return mongoDb.collection('messages').deleteOne({ id });
+}
+
+async function listEvents() {
+  if (!mongoDb) return [];
+  return mongoDb.collection('events')
+    .find({}, { projection: { _id: 0 } })
+    .sort({ date: 1, createdAt: -1 })
+    .toArray();
+}
+
+async function createEvent(event) {
+  if (!mongoDb) return event;
+  await mongoDb.collection('events').insertOne(event);
+  return event;
+}
+
+async function removeEvent(id) {
+  if (!mongoDb) return { deletedCount: 0 };
+  return mongoDb.collection('events').deleteOne({ id });
 }
 
 // ── Public Routes ────────────────────────────────────────
