@@ -33,6 +33,7 @@ if (!LOVE_PASSWORD) {
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+app.set('trust proxy', 1);
 
 const UPLOADS_DIR = 'uploads';
 const DATA_FILE   = path.join('data', 'photos.json');
@@ -47,7 +48,13 @@ app.use(session({
   secret: SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 }
+  name: 'hana.sid',
+  cookie: {
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production'
+  }
 }));
 
 app.use(express.json());
@@ -126,15 +133,31 @@ app.get('/', (req, res) => {
 // Login (rate-limited)
 app.post('/api/login', loginRateLimit, (req, res) => {
   const pw = normalizePassword(req.body.password);
-  if (pw === LOVE_PASSWORD) {
-    req.session.authenticated = true;
-    // Reset rate limit on successful login
-    const ip = req.ip || req.socket.remoteAddress || 'unknown';
-    loginAttempts.delete(ip);
-    res.json({ success: true });
-  } else {
+  if (pw !== LOVE_PASSWORD) {
     res.json({ success: false, message: 'كلمة السر غلط يا حبيبتي 💔 جربي تاني' });
+    return;
   }
+
+  // Always create a fresh session after a successful login. This avoids
+  // stale/invalid cookies preventing the browser from reaching the gallery.
+  req.session.regenerate(err => {
+    if (err) {
+      console.error('Login session could not be created:', err.message);
+      return res.status(500).json({ success: false, message: 'تعذر فتح الجلسة. جربي مرة أخرى.' });
+    }
+    req.session.authenticated = true;
+    req.session.save(saveErr => {
+      if (saveErr) {
+        console.error('Login session could not be saved:', saveErr.message);
+        return res.status(500).json({ success: false, message: 'تعذر حفظ الدخول. جربي مرة أخرى.' });
+      }
+      // Reset rate limit on successful login.
+      const ip = req.ip || req.socket.remoteAddress || 'unknown';
+      loginAttempts.delete(ip);
+      res.set('Cache-Control', 'no-store');
+      res.json({ success: true });
+    });
+  });
 });
 
 app.get('/api/check-auth', (req, res) => {
