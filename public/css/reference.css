@@ -39,8 +39,8 @@
   padding: 22px 28px 18px;
   background: rgba(247, 240, 231, .2);
   box-shadow: 0 0 60px rgba(31, 22, 17, .18);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .reference-login .login-panel {
