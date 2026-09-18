@@ -473,9 +473,13 @@ app.get('/api/music', requireAuth, async (req, res) => {
     fs.readdirSync(path.join(__dirname, 'attached_assets'))
       .filter(filename => AUDIO_EXTENSIONS.test(filename))
       .sort((a, b) => {
+        const aIsFirst = /^TUL8TE_-_Garee2a_Awy/i.test(a);
+        const bIsFirst = /^TUL8TE_-_Garee2a_Awy/i.test(b);
         const aIsMain = /^Amr_Diab/i.test(a);
         const bIsMain = /^Amr_Diab/i.test(b);
-        return Number(bIsMain) - Number(aIsMain) || a.localeCompare(b, 'ar');
+        return Number(bIsFirst) - Number(aIsFirst)
+          || Number(bIsMain) - Number(aIsMain)
+          || a.localeCompare(b, 'ar');
       })
       .forEach(filename => addSong(filename));
   }

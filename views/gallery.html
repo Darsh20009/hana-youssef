@@ -106,6 +106,7 @@
           <h2>رسالة اليوم</h2>
           <p id="dailyMessageText">أنتِ الجزء الجميل من كل أيامي ..<br/>وجودك يجعل كل شيء أجمل ..<br/>ممتن لأنكِ هنا دائمًا ..</p>
           <div class="message-signature" id="dailyMessageSignature">Youssef <span>♡</span></div>
+          <div id="messageDrawerList" class="message-drawer-list"></div>
         </aside>
       </div>
 
@@ -326,16 +327,42 @@ if (track) {
 // ── Local Audio Player with playlist ─────────────────────
 const audioEl = document.getElementById('audioPlayer');
 audioEl.volume = 0.42;
+const FIRST_SONG_FILE = 'TUL8TE_-_Garee2a_Awy_A_COLORS_SHOW_1789752392795.mp3';
+const MUSIC_STATE_KEY = 'hana-youssef-music-state-v2';
 const DEFAULT_PLAYLIST = [{
-  path: '/media/Amr_Diab_-_Khalik_Maaya___\u0639\u0645\u0631\u0648_\u062f\u064a\u0627\u0628_-_\u062e\u0644\u064a\u0643_\u0645\u0639\u0627\u064a\u0627_1786738867805.mp3',
-  title: 'خليك معايا — عمرو دياب'
+  path: '/media/' + encodeURIComponent(FIRST_SONG_FILE),
+  title: 'جريئة أوي — TUL8TE'
 }];
 let playlist = [...DEFAULT_PLAYLIST];
 let songIndex = 0;
 let activeVideo = null;
 let musicPausedByVideo = false;
+let lastMusicSave = 0;
+
+function readMusicState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(MUSIC_STATE_KEY) || 'null');
+    return saved && typeof saved === 'object' ? saved : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveMusicState() {
+  if (!audioEl.src || !playlist[songIndex]) return;
+  try {
+    localStorage.setItem(MUSIC_STATE_KEY, JSON.stringify({
+      path: playlist[songIndex].path,
+      currentTime: Number.isFinite(audioEl.currentTime) ? audioEl.currentTime : 0,
+      wasPlaying: !audioEl.paused
+    }));
+  } catch {
+    // Private browsing may disable localStorage; playback still works.
+  }
+}
 
 function loadSong(i) {
+  saveMusicState();
   songIndex = (i + playlist.length) % playlist.length;
   const s = playlist[songIndex];
   const wasPlaying = !audioEl.paused;
@@ -348,13 +375,24 @@ function replacePlaylist(songs) {
   if (!Array.isArray(songs) || songs.length === 0) return;
   const wasPlaying = !audioEl.paused;
   const currentPath = playlist[songIndex]?.path;
-  const nextIndex = songs.findIndex(song => song.path === currentPath);
+  const saved = readMusicState();
+  const preferredPath = saved?.path || currentPath;
+  const nextIndex = songs.findIndex(song => song.path === preferredPath);
   playlist = songs;
   songIndex = nextIndex >= 0 ? nextIndex : 0;
   const selected = playlist[songIndex];
   audioEl.src = selected.path;
   document.getElementById('songTitle').textContent = selected.title;
-  if (wasPlaying) audioEl.play().catch(()=>{});
+  const restorePosition = () => {
+    if (saved?.path === selected.path && Number.isFinite(saved.currentTime)) {
+      try { audioEl.currentTime = Math.max(0, saved.currentTime); } catch {}
+    }
+  };
+  if (audioEl.readyState >= 1) restorePosition();
+  else audioEl.addEventListener('loadedmetadata', restorePosition, { once: true });
+  if (wasPlaying || (saved?.path === selected.path && saved.wasPlaying)) {
+    audioEl.play().catch(()=>{});
+  }
 }
 
 loadSong(0);
@@ -365,7 +403,14 @@ audioEl.addEventListener('pause', () => { document.getElementById('playBtn').tex
 audioEl.addEventListener('timeupdate', () => {
   const fill = document.getElementById('musicProgressFill');
   fill.style.width = audioEl.duration ? `${(audioEl.currentTime / audioEl.duration) * 100}%` : '0%';
+  if (Date.now() - lastMusicSave > 1000) {
+    lastMusicSave = Date.now();
+    saveMusicState();
+  }
 });
+audioEl.addEventListener('pause', saveMusicState);
+window.addEventListener('pagehide', saveMusicState);
+window.addEventListener('beforeunload', saveMusicState);
 
 function startBackgroundMusic() {
   if (!audioEl.src || !audioEl.paused) return;
@@ -517,8 +562,10 @@ async function loadGallery() {
 
 function renderWrittenMemories() {
   const list = document.getElementById('writtenMemoryList');
+  const drawerList = document.getElementById('messageDrawerList');
   if (!writtenMessages.length) {
     list.innerHTML = '<div class="written-empty">لسه هنملأ المكان بكلامنا الحلو ♡</div>';
+    if (drawerList) drawerList.innerHTML = '<div class="written-empty">لسه هنملأ المكان برسائلنا الحلوة ♡</div>';
     document.getElementById('cnt-messages').textContent = '0';
     return;
   }
@@ -531,6 +578,16 @@ function renderWrittenMemories() {
         <p>${esc(message.body)}</p>
       </div>
     </article>`).join('');
+  if (drawerList) {
+    drawerList.innerHTML = writtenMessages.map(message => `
+      <article class="drawer-message-item">
+        <div class="drawer-message-heading">
+          <strong>${esc(message.title || 'رسالة من قلبي')}</strong>
+          <small>${esc(message.memoryDate || message.category || '')}</small>
+        </div>
+        <p>${esc(message.body)}</p>
+      </article>`).join('');
+  }
 
   const first = writtenMessages[0];
   const dailyText = document.getElementById('dailyMessageText');
