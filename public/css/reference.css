@@ -37,7 +37,7 @@
   min-height: 100vh;
   margin-inline: auto;
   padding: 22px 28px 18px;
-  background: rgba(247, 240, 231, .91);
+  background: rgba(247, 240, 231, .2);
   box-shadow: 0 0 60px rgba(31, 22, 17, .18);
   backdrop-filter: blur(15px);
 }
