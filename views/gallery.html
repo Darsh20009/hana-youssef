@@ -98,7 +98,8 @@
           <div class="gallery-grid" id="galleryGrid"></div>
         </section>
 
-        <aside class="message-card" id="message">
+        <aside class="message-card" id="message" aria-label="رسائلي لك">
+          <button type="button" class="message-close" id="messageClose" onclick="closeMessageDrawer()" aria-label="إخفاء الرسالة">×</button>
           <div class="tape"></div>
           <h2>رسالة اليوم</h2>
           <p id="dailyMessageText">أنتِ الجزء الجميل من كل أيامي ..<br/>وجودك يجعل كل شيء أجمل ..<br/>ممتن لأنكِ هنا دائمًا ..</p>
@@ -141,6 +142,11 @@
     </main>
   </div>
 </div>
+
+<div class="message-drawer-backdrop" id="messageDrawerBackdrop" onclick="closeMessageDrawer()" aria-hidden="true"></div>
+<button type="button" class="message-drawer-toggle" id="messageDrawerToggle" onclick="openMessageDrawer()" aria-controls="message" aria-expanded="false">
+  ✉ رسالتي لك
+</button>
 
 <audio id="audioPlayer" preload="auto" autoplay></audio>
 
@@ -232,10 +238,11 @@ if (track) {
 // ── Local Audio Player with playlist ─────────────────────
 const audioEl = document.getElementById('audioPlayer');
 audioEl.volume = 0.42;
-let playlist = [{
+const DEFAULT_PLAYLIST = [{
   path: '/media/Amr_Diab_-_Khalik_Maaya___\u0639\u0645\u0631\u0648_\u062f\u064a\u0627\u0628_-_\u062e\u0644\u064a\u0643_\u0645\u0639\u0627\u064a\u0627_1786738867805.mp3',
   title: 'خليك معايا — عمرو دياب'
 }];
+let playlist = [...DEFAULT_PLAYLIST];
 let songIndex = 0;
 let activeVideo = null;
 let musicPausedByVideo = false;
@@ -248,6 +255,20 @@ function loadSong(i) {
   document.getElementById('songTitle').textContent = s.title;
   if (wasPlaying) audioEl.play().catch(()=>{});
 }
+
+function replacePlaylist(songs) {
+  if (!Array.isArray(songs) || songs.length === 0) return;
+  const wasPlaying = !audioEl.paused;
+  const currentPath = playlist[songIndex]?.path;
+  const nextIndex = songs.findIndex(song => song.path === currentPath);
+  playlist = songs;
+  songIndex = nextIndex >= 0 ? nextIndex : 0;
+  const selected = playlist[songIndex];
+  audioEl.src = selected.path;
+  document.getElementById('songTitle').textContent = selected.title;
+  if (wasPlaying) audioEl.play().catch(()=>{});
+}
+
 loadSong(0);
 document.getElementById('songArtist').textContent = 'موسيقى تشبه تفاصيلنا';
 
@@ -372,28 +393,30 @@ function makeMediaEl(photo, lazy = false, full = false) {
 
 async function loadGallery() {
   try {
-    const [photosResponse, messagesResponse, eventsResponse] = await Promise.all([
+    const [photosResponse, messagesResponse, eventsResponse, musicResponse] = await Promise.all([
       fetch('/api/photos'),
       fetch('/api/messages'),
-      fetch('/api/events')
+      fetch('/api/events'),
+      fetch('/api/music')
     ]);
     if (!photosResponse.ok) throw new Error('photos request failed');
     const d = await photosResponse.json();
     const messagesData = messagesResponse.ok ? await messagesResponse.json() : { messages: [] };
     const eventsData = eventsResponse.ok ? await eventsResponse.json() : { events: [] };
+    const musicData = musicResponse.ok ? await musicResponse.json() : { songs: [] };
     const all = d.photos || [];
     writtenMessages = messagesData.messages || [];
     timelineEvents = eventsData.events || [];
     renderWrittenMemories();
     renderTimeline();
     // Songs go to the music player playlist, not the photo gallery
-    const songs = all.filter(p => p.type === 'audio');
-    if (songs.length > 0) {
-      songs.forEach(s => playlist.push({
-        path: s.path,
-        title: s.caption || s.filename.replace(/\.[^.]+$/, '')
-      }));
-    }
+    const songs = musicData.songs?.length
+      ? musicData.songs
+      : all.filter(p => p.type === 'audio').map(s => ({
+          path: s.path,
+          title: s.caption || s.filename.replace(/\.[^.]+$/, '')
+        }));
+    replacePlaylist(songs);
     allPhotos = all.filter(p => p.type !== 'audio');
     allMedia = allPhotos.slice();
     renderGallery();
@@ -466,6 +489,25 @@ function showRandomMoment() {
   const moment = choices[Math.floor(Math.random() * choices.length)] || source[0];
   target.textContent = moment;
   target.dataset.current = moment;
+}
+
+const messageCard = document.getElementById('message');
+const messageDrawerBackdrop = document.getElementById('messageDrawerBackdrop');
+const messageDrawerToggle = document.getElementById('messageDrawerToggle');
+
+function openMessageDrawer() {
+  if (!messageCard) return;
+  messageCard.classList.add('is-open');
+  messageDrawerBackdrop?.classList.add('is-visible');
+  messageDrawerToggle?.setAttribute('aria-expanded', 'true');
+  document.body.classList.add('message-drawer-open');
+}
+
+function closeMessageDrawer() {
+  messageCard?.classList.remove('is-open');
+  messageDrawerBackdrop?.classList.remove('is-visible');
+  messageDrawerToggle?.setAttribute('aria-expanded', 'false');
+  document.body.classList.remove('message-drawer-open');
 }
 
 function renderGallery() {
@@ -702,13 +744,26 @@ document.querySelectorAll('.dashboard-nav a[href^="#"]').forEach(link => {
   link.addEventListener('click', event => {
     event.preventDefault();
     const target = document.getElementById(link.getAttribute('href').slice(1));
+    if (target?.id === 'message' && window.matchMedia('(max-width: 900px)').matches) {
+      openMessageDrawer();
+      history.replaceState(null, '', '#message');
+      document.querySelectorAll('.dashboard-nav a').forEach(item => item.classList.remove('active'));
+      link.classList.add('active');
+      return;
+    }
     if (target) {
       target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       history.replaceState(null, '', link.getAttribute('href'));
+      target.classList.remove('shortcut-target');
+      requestAnimationFrame(() => target.classList.add('shortcut-target'));
+      setTimeout(() => target.classList.remove('shortcut-target'), 900);
     }
     document.querySelectorAll('.dashboard-nav a').forEach(item => item.classList.remove('active'));
     link.classList.add('active');
   });
+});
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') closeMessageDrawer();
 });
 
 // ── Secret keyboard shortcut for upload ─────────────────

@@ -445,6 +445,49 @@ app.get('/media/:filename', requireAuth, (req, res) => {
 });
 
 // ── Protected API Routes ─────────────────────────────────
+const AUDIO_EXTENSIONS = /\.(mp3|m4a|wav|aac|ogg)$/i;
+
+function audioTitle(filename) {
+  return filename
+    .replace(/\.[^.]+$/, '')
+    .replace(/_\d{10,}$/, '')
+    .replace(/_/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+app.get('/api/music', requireAuth, async (req, res) => {
+  const songs = [];
+  const seen = new Set();
+  const addSong = (filename, title = audioTitle(filename)) => {
+    if (!filename || seen.has(filename)) return;
+    seen.add(filename);
+    songs.push({
+      filename,
+      path: '/media/' + encodeURIComponent(filename),
+      title
+    });
+  };
+
+  if (fs.existsSync(path.join(__dirname, 'attached_assets'))) {
+    fs.readdirSync(path.join(__dirname, 'attached_assets'))
+      .filter(filename => AUDIO_EXTENSIONS.test(filename))
+      .sort((a, b) => {
+        const aIsMain = /^Amr_Diab/i.test(a);
+        const bIsMain = /^Amr_Diab/i.test(b);
+        return Number(bIsMain) - Number(aIsMain) || a.localeCompare(b, 'ar');
+      })
+      .forEach(filename => addSong(filename));
+  }
+
+  const media = await listMedia();
+  media
+    .filter(entry => entry.type === 'audio' && entry.filename)
+    .forEach(entry => addSong(entry.filename, entry.caption || audioTitle(entry.filename)));
+
+  res.json({ songs });
+});
+
 app.post('/api/upload', requireAuth, upload.array('photos', 200), async (req, res) => {
   if (!req.files || req.files.length === 0)
     return res.status(400).json({ success: false, message: 'مفيش ملفات اتحملت' });
