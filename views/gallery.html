@@ -139,6 +139,7 @@
 <!-- Lightbox -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
   <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <button class="lightbox-download" onclick="downloadCurrentMedia();event.stopPropagation()">تنزيل ⤓</button>
   <button class="lightbox-nav lightbox-prev" onclick="lightboxPrev();event.stopPropagation()">&#8250;</button>
   <div id="lightboxContent"></div>
   <button class="lightbox-nav lightbox-next" onclick="lightboxNext();event.stopPropagation()">&#8249;</button>
@@ -516,6 +517,18 @@ function renderLightboxItem(photo) {
   if (photo.type === 'video') { el.controls = true; el.autoplay = true; }
   content.appendChild(el);
   document.getElementById('lightboxCaption').textContent = photo.caption || '';
+}
+
+function downloadCurrentMedia() {
+  const photo = displayPhotos[lightboxIndex];
+  if (!photo) return;
+  const link = document.createElement('a');
+  link.href = photo.path;
+  link.download = photo.filename || 'hana-youssef-memory';
+  link.rel = 'noopener';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
 }
 
 function lightboxNext() {
