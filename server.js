@@ -8,10 +8,19 @@ const sharp = require('sharp');
 
 // ── Require secrets at startup ───────────────────────────
 const SESSION_SECRET = process.env.SESSION_SECRET;
-// Keep the same normalization on both sides of the comparison. This also
-// prevents an accidental trailing newline/space in Replit Secrets from
-// making a valid password look incorrect.
-const LOVE_PASSWORD  = String(process.env.LOVE_PASSWORD || '').trim().replace(/\s/g, '');
+// Keep the same normalization on both sides of the comparison. Besides
+// trimming accidental whitespace, accept Arabic/Persian numerals typed from
+// an Arabic mobile keyboard as their Western digit equivalents.
+function normalizePassword(value) {
+  return String(value || '')
+    .normalize('NFKC')
+    .replace(/[٠-٩]/g, char => String(char.charCodeAt(0) - 0x660))
+    .replace(/[۰-۹]/g, char => String(char.charCodeAt(0) - 0x6f0))
+    .replace(/\s/g, '')
+    .trim();
+}
+
+const LOVE_PASSWORD  = normalizePassword(process.env.LOVE_PASSWORD);
 
 if (!SESSION_SECRET) {
   console.error('ERROR: SESSION_SECRET environment secret is not set. Please configure it.');
@@ -110,12 +119,13 @@ function savePhotos(photos) {
 // ── Public Routes ────────────────────────────────────────
 app.get('/', (req, res) => {
   if (req.session && req.session.authenticated) return res.redirect('/gallery');
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.sendFile(path.join(__dirname, 'views', 'index.html'));
 });
 
 // Login (rate-limited)
 app.post('/api/login', loginRateLimit, (req, res) => {
-  const pw = String(req.body.password || '').trim().replace(/\s/g, '');
+  const pw = normalizePassword(req.body.password);
   if (pw === LOVE_PASSWORD) {
     req.session.authenticated = true;
     // Reset rate limit on successful login
@@ -138,10 +148,12 @@ app.post('/api/logout', (req, res) => {
 
 // ── Protected HTML Pages ─────────────────────────────────
 app.get('/gallery', requireAuthPage, (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.sendFile(path.join(__dirname, 'views', 'gallery.html'));
 });
 
 app.get('/upload', requireAuthPage, (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.sendFile(path.join(__dirname, 'views', 'upload.html'));
 });
 
