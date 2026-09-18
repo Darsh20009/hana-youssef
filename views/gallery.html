@@ -41,10 +41,11 @@
 
   <div class="dashboard-content">
     <header class="dashboard-topbar">
-      <div class="dashboard-search"><span>⌕</span><input aria-label="بحث" placeholder="ابحثي في ذكرياتنا ..." /></div>
+      <div class="dashboard-search"><span>⌕</span><input id="memorySearch" aria-label="بحث" placeholder="ابحثي في ذكرياتنا ..." /></div>
       <div class="dashboard-user">
         <span>♥ مرحبًا بكِ ..</span>
         <img src="/assets/logo.png" alt="هنا ويوسف"/>
+        <a class="topbar-add" href="/upload">＋ إضافة</a>
       </div>
     </header>
 
@@ -56,7 +57,7 @@
       <section class="dashboard-stats" aria-label="إحصائيات حكايتنا">
         <article class="stat-card"><span class="stat-icon">▦</span><strong id="daysNum">0</strong><small>يوم معًا ♥</small></article>
         <article class="stat-card"><span class="stat-icon">▧</span><strong id="cnt-all">0</strong><small>صورة ♥</small></article>
-        <article class="stat-card"><span class="stat-icon">✉</span><strong>86</strong><small>رسالة ♥</small></article>
+        <article class="stat-card"><span class="stat-icon">✉</span><strong id="cnt-messages">0</strong><small>رسالة ♥</small></article>
         <article class="stat-card"><span class="stat-icon">♥</span><strong>∞</strong><small>لحظة جميلة</small></article>
       </section>
 
@@ -265,7 +266,7 @@ audioEl.addEventListener('ended', nextSong);
 
 // ── Gallery ───────────────────────────────────────────────
 const HEARTS = ['❤️','💕','💖','🌹','✨','🌙','💎'];
-let allPhotos = [], displayPhotos = [], shownCount = 0, currentAlbum = 'all';
+let allPhotos = [], allMedia = [], displayPhotos = [], shownCount = 0, currentAlbum = 'all';
 let writtenMessages = [], timelineEvents = [], dailyMessageTimer = null;
 const PAGE = 24;
 const TRACK_LIMIT = 12;
@@ -297,6 +298,7 @@ function updateCounts() {
   document.getElementById('cnt-together').textContent= allPhotos.filter(p=>p.album==='together').length;
   document.getElementById('cnt-her').textContent     = allPhotos.filter(p=>p.album==='her').length;
   document.getElementById('cnt-his').textContent     = allPhotos.filter(p=>p.album==='his').length;
+  document.getElementById('cnt-messages').textContent = writtenMessages.length;
 }
 
 // Lazy video observer — only loads src when card enters viewport
@@ -351,6 +353,7 @@ async function loadGallery() {
       }));
     }
     allPhotos = all.filter(p => p.type !== 'audio');
+    allMedia = allPhotos.slice();
     renderGallery();
   } catch (error) {
     console.error('Gallery failed to load', error);
@@ -363,8 +366,10 @@ function renderWrittenMemories() {
   const list = document.getElementById('writtenMemoryList');
   if (!writtenMessages.length) {
     list.innerHTML = '<div class="written-empty">لسه هنملأ المكان بكلامنا الحلو ♡</div>';
+    document.getElementById('cnt-messages').textContent = '0';
     return;
   }
+  document.getElementById('cnt-messages').textContent = writtenMessages.length;
   list.innerHTML = writtenMessages.slice(0, 6).map((message, index) => `
     <article class="written-memory ${index === 0 ? 'featured' : ''}">
       <span class="written-heart">♡</span>
@@ -643,6 +648,17 @@ document.addEventListener('keypress', e => {
 });
 
 loadGallery();
+
+document.getElementById('memorySearch').addEventListener('input', event => {
+  const query = event.target.value.trim().toLocaleLowerCase();
+  allPhotos = query
+    ? allMedia.filter(photo => [photo.caption, photo.category, photo.album, photo.filename].join(' ').toLocaleLowerCase().includes(query))
+    : allMedia.slice();
+  currentAlbum = 'all';
+  document.querySelectorAll('.album-tab').forEach(tab => tab.classList.remove('active'));
+  document.querySelector('.album-tab')?.classList.add('active');
+  renderGallery();
+});
 </script>
 </body>
 </html>
