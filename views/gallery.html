@@ -361,6 +361,67 @@ function saveMusicState() {
   }
 }
 
+function updateMediaSessionMetadata() {
+  const song = playlist[songIndex];
+  if (!song || !('mediaSession' in navigator) || !('MediaMetadata' in window)) return;
+  try {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: song.title || 'موسيقى حكايتنا',
+      artist: 'هنا ويوسف',
+      album: 'ذكرياتنا',
+      artwork: [
+        { src: '/assets/logo.png', sizes: '192x192', type: 'image/png' },
+        { src: '/assets/logo.png', sizes: '512x512', type: 'image/png' }
+      ]
+    });
+  } catch {
+    // Some browsers expose Media Session but not metadata artwork.
+  }
+}
+
+function updateMediaSessionState() {
+  if (!('mediaSession' in navigator)) return;
+  try {
+    navigator.mediaSession.playbackState = audioEl.paused ? 'paused' : 'playing';
+  } catch {}
+}
+
+function updateMediaSessionPosition() {
+  if (!('mediaSession' in navigator) || typeof navigator.mediaSession.setPositionState !== 'function') return;
+  if (!Number.isFinite(audioEl.duration) || audioEl.duration <= 0) return;
+  try {
+    navigator.mediaSession.setPositionState({
+      duration: audioEl.duration,
+      playbackRate: audioEl.playbackRate || 1,
+      position: Math.min(Math.max(audioEl.currentTime, 0), audioEl.duration)
+    });
+  } catch {}
+}
+
+function setupMediaSession() {
+  if (!('mediaSession' in navigator)) return;
+  const handlers = {
+    play: () => audioEl.play().catch(() => {}),
+    pause: () => audioEl.pause(),
+    nexttrack: () => nextSong(),
+    previoustrack: () => prevSong(),
+    seekbackward: details => {
+      audioEl.currentTime = Math.max(0, audioEl.currentTime - (details.seekOffset || 10));
+    },
+    seekforward: details => {
+      audioEl.currentTime = Math.min(audioEl.duration || Infinity, audioEl.currentTime + (details.seekOffset || 10));
+    },
+    seekto: details => {
+      if (!Number.isFinite(details.seekTime)) return;
+      if (details.fastSeek && typeof audioEl.fastSeek === 'function') audioEl.fastSeek(details.seekTime);
+      else audioEl.currentTime = details.seekTime;
+    }
+  };
+  Object.entries(handlers).forEach(([action, handler]) => {
+    try { navigator.mediaSession.setActionHandler(action, handler); } catch {}
+  });
+}
+
 function loadSong(i) {
   saveMusicState();
   songIndex = (i + playlist.length) % playlist.length;
@@ -368,6 +429,7 @@ function loadSong(i) {
   const wasPlaying = !audioEl.paused;
   audioEl.src = s.path;
   document.getElementById('songTitle').textContent = s.title;
+  updateMediaSessionMetadata();
   if (wasPlaying) audioEl.play().catch(()=>{});
 }
 
@@ -383,6 +445,7 @@ function replacePlaylist(songs) {
   const selected = playlist[songIndex];
   audioEl.src = selected.path;
   document.getElementById('songTitle').textContent = selected.title;
+  updateMediaSessionMetadata();
   const restorePosition = () => {
     if (saved?.path === selected.path && Number.isFinite(saved.currentTime)) {
       try { audioEl.currentTime = Math.max(0, saved.currentTime); } catch {}
@@ -400,9 +463,12 @@ document.getElementById('songArtist').textContent = 'موسيقى تشبه تف�
 
 audioEl.addEventListener('play',  () => { document.getElementById('playBtn').textContent = '⏸'; document.getElementById('songArtist').textContent = 'تعمل الآن…'; });
 audioEl.addEventListener('pause', () => { document.getElementById('playBtn').textContent = '▶'; document.getElementById('songArtist').textContent = 'اضغطي ▶ للاستمرار'; });
+audioEl.addEventListener('play', updateMediaSessionState);
+audioEl.addEventListener('pause', updateMediaSessionState);
 audioEl.addEventListener('timeupdate', () => {
   const fill = document.getElementById('musicProgressFill');
   fill.style.width = audioEl.duration ? `${(audioEl.currentTime / audioEl.duration) * 100}%` : '0%';
+  updateMediaSessionPosition();
   if (Date.now() - lastMusicSave > 1000) {
     lastMusicSave = Date.now();
     saveMusicState();
@@ -439,6 +505,7 @@ function togglePlay() {
 }
 function nextSong()  { loadSong(songIndex + 1); audioEl.play().catch(()=>{}); }
 function prevSong()  { loadSong(songIndex - 1); audioEl.play().catch(()=>{}); }
+setupMediaSession();
 // Advance to next song when current one ends (loops back to first at the end)
 audioEl.addEventListener('ended', nextSong);
 
