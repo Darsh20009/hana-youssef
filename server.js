@@ -8,6 +8,7 @@ const { promisify } = require('util');
 const QRCode = require('qrcode');
 const sharp = require('sharp');
 const { MongoClient } = require('mongodb');
+const MongoStore = require('connect-mongo');
 const execFileAsync = promisify(execFile);
 
 // ── Require secrets at startup ───────────────────────────
@@ -57,6 +58,14 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   name: 'hana.sid',
+  ...(MONGODB_URI ? {
+    store: MongoStore.create({
+      mongoUrl: MONGODB_URI,
+      dbName: MONGODB_DB,
+      collectionName: 'sessions',
+      ttl: 7 * 24 * 60 * 60
+    })
+  } : {}),
   cookie: {
     maxAge: 7 * 24 * 60 * 60 * 1000,
     httpOnly: true,
