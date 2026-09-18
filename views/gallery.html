@@ -42,6 +42,21 @@
   <div class="dashboard-content">
     <header class="dashboard-topbar">
       <div class="dashboard-search"><span>⌕</span><input id="memorySearch" aria-label="بحث" placeholder="ابحثي في ذكرياتنا ..." /></div>
+      <div class="topbar-music" id="music" aria-label="مشغل موسيقانا">
+        <div class="music-bar">
+          <div class="music-icon">♫</div>
+          <div class="music-info">
+            <div class="music-title" id="songTitle">خليك معايا — عمرو دياب</div>
+            <div class="music-artist" id="songArtist">موسيقى تشبه تفاصيلنا</div>
+            <div class="music-progress"><div class="music-progress-fill" id="musicProgressFill"></div></div>
+          </div>
+          <div class="music-controls">
+            <button class="music-btn" onclick="prevSong()" aria-label="الأغنية السابقة">⏮</button>
+            <button class="music-btn" id="playBtn" onclick="togglePlay()" aria-label="تشغيل أو إيقاف الموسيقى">▶</button>
+            <button class="music-btn" onclick="nextSong()" aria-label="الأغنية التالية">⏭</button>
+          </div>
+        </div>
+      </div>
       <div class="dashboard-user">
         <span>♥ مرحبًا بكِ ..</span>
         <img src="/assets/logo.png" alt="هنا ويوسف"/>
@@ -127,12 +142,7 @@
   </div>
 </div>
 
-<div class="reference-hidden-player" aria-hidden="true">
-  <div class="phrases-scroll"><div class="phrases-track" id="phrasesTrack"></div></div>
-  <div class="music-bar" id="music"><div class="music-icon">♫</div><div class="music-info"><div class="music-title" id="songTitle">خليك معايا — عمرو دياب</div><div class="music-artist" id="songArtist">موسيقى تشبه تفاصيلنا</div><div class="music-progress"><div class="music-progress-fill" id="musicProgressFill"></div></div></div><div class="music-controls"><button class="music-btn" onclick="prevSong()">⏮</button><button class="music-btn" id="playBtn" onclick="togglePlay()">▶</button><button class="music-btn" onclick="nextSong()">⏭</button></div></div>
-  <audio id="audioPlayer" preload="none"></audio>
-  <div id="cDays">0</div><div id="cHrs">0</div><div id="cMins">0</div><div id="cSecs">0</div>
-</div>
+<audio id="audioPlayer" preload="none"></audio>
 
 <!-- QR Modal -->
 <div class="modal-overlay" id="qrModal" onclick="closeQR(event)">
@@ -198,10 +208,6 @@ function tick() {
   const m = Math.floor((diff % 3600000) / 60000);
   const s = Math.floor((diff % 60000) / 1000);
   document.getElementById('daysNum').textContent = d;
-  document.getElementById('cDays').textContent = d;
-  document.getElementById('cHrs').textContent = String(h).padStart(2,'0');
-  document.getElementById('cMins').textContent = String(m).padStart(2,'0');
-  document.getElementById('cSecs').textContent = String(s).padStart(2,'0');
 }
 tick(); setInterval(tick, 1000);
 
