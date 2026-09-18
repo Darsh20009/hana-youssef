@@ -12,24 +12,76 @@
   <meta name="apple-mobile-web-app-title" content="هنا ويوسف"/>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="/css/love.css"/>
+  <link rel="stylesheet" href="/css/reference.css"/>
 </head>
-<body class="upload-page">
+<body class="upload-page reference-upload">
 <div style="max-width:720px;margin:0 auto;">
   <div class="upload-header">
     <img src="/assets/logo.png" alt="Logo"/>
     <div>
-      <h1>📸 أضيفي لحظة جديدة</h1>
-      <div style="font-size:13px;color:rgba(255,255,255,.4);">صورة، فيديو، أو أغنية تحمل معنى خاصًا لنا</div>
+      <h1>أضيفي ذكرى جديدة</h1>
+      <div class="upload-subtitle">صورة، فيديو، رسالة، أو موعد مهم في حكايتنا</div>
     </div>
   </div>
 
+  <section class="reference-composer">
+    <div class="composer-heading">
+      <span class="composer-kicker">ذكرياتنا الكتابية</span>
+      <h2>اكتبي الكلام اللي عايزة يفضل بينا</h2>
+    </div>
+    <form id="messageForm" class="memory-form">
+      <div class="form-row">
+        <label>عنوان الذكرى<input id="messageTitle" maxlength="120" placeholder="مثلاً: كلام من قلبي"/></label>
+        <label>التصنيف
+          <select id="messageCategory">
+            <option>حبنا</option><option>اعتذار</option><option>دعاء</option><option>وعد</option><option>يوم جميل</option>
+          </select>
+        </label>
+      </div>
+      <label>الرسالة<textarea id="messageBody" maxlength="5000" rows="5" required placeholder="اكتبي رسالتك هنا..."></textarea></label>
+      <div class="form-row form-row-bottom">
+        <label>تاريخ الذكرى<input id="messageDate" type="date"/></label>
+        <button type="submit" class="composer-button">احفظي الرسالة ♡</button>
+      </div>
+      <div id="messageMsg" class="composer-message"></div>
+    </form>
+  </section>
+
+  <section class="reference-composer event-composer">
+    <div class="composer-heading">
+      <span class="composer-kicker">مواعيدنا</span>
+      <h2>أضيفي تاريخًا لا نريد نسيانه</h2>
+    </div>
+    <form id="eventForm" class="memory-form">
+      <div class="form-row">
+        <label>اسم المناسبة<input id="eventTitle" maxlength="120" placeholder="أول مقابلة، ذكرى، أو موعد مهم" required/></label>
+        <label>التاريخ<input id="eventDate" type="date" required/></label>
+      </div>
+      <div class="form-row form-row-bottom">
+        <label>ملاحظة صغيرة<input id="eventNote" maxlength="500" placeholder="تفصيل نحب نفتكره"/></label>
+        <button type="submit" class="composer-button">احفظي التاريخ ✦</button>
+      </div>
+      <div id="eventMsg" class="composer-message"></div>
+    </form>
+  </section>
+
   <!-- Existing Photos -->
   <div id="existingSection" style="margin-bottom:30px;">
-    <h3 style="color:#ff6b9d;font-size:18px;margin-bottom:16px;">📂 ما حفظناه حتى الآن</h3>
+    <h3 class="upload-section-title">ما حفظناه حتى الآن</h3>
     <div id="existingGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;"></div>
   </div>
 
   <div class="upload-card">
+    <div class="upload-section-title">صور وفيديوهات وأغانٍ</div>
+    <div class="upload-fields">
+      <label>التصنيف
+        <select id="bulkCategory">
+          <option value="">بدون تصنيف</option>
+          <option value="together">معًا</option><option value="her">صورها</option><option value="his">صوري</option><option value="videos">فيديوهات</option><option value="trips">رحلات</option><option value="days">أيامنا</option>
+        </select>
+      </label>
+      <label>تاريخ الذكرى<input id="bulkDate" type="date"/></label>
+    </div>
     <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
       <div class="drop-zone-icon">🖼️</div>
       <h3>اسحبي الملفات هنا أو اختاريها من جهازك</h3>
@@ -54,6 +106,7 @@ fetch('/api/check-auth').then(r=>r.json()).then(d=>{
 });
 
 let selectedFiles = [];
+const esc = value => String(value || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 
 async function loadExisting() {
   const r = await fetch('/api/photos');
@@ -90,13 +143,13 @@ async function loadExisting() {
     // Caption label — textContent only (no XSS)
     const cap = document.createElement('div');
     cap.style.cssText = 'padding:6px 8px;background:rgba(0,0,0,.5);font-size:11px;color:rgba(255,255,255,.7);word-break:break-word;';
-    cap.textContent = p.caption || 'بدون تعليق';
+    cap.textContent = p.caption || p.category || 'بدون تعليق';
     card.appendChild(cap);
 
     // Album badge / selector
     const albumSel = document.createElement('select');
     albumSel.style.cssText = 'width:100%;padding:4px 6px;font-size:11px;border:none;background:rgba(255,107,157,.15);color:#c05080;font-family:Tajawal,sans-serif;font-weight:700;border-top:1px solid rgba(255,107,157,.2);';
-    [{v:'',t:'📸 الكل'},{v:'together',t:'💑 مع بعض'},{v:'her',t:'🌸 صورها'},{v:'his',t:'😎 صوري'},{v:'videos',t:'🎬 فيديوهات'}].forEach(o => {
+    [{v:'',t:'📸 الكل'},{v:'together',t:'💑 مع بعض'},{v:'her',t:'🌸 صورها'},{v:'his',t:'😎 صوري'},{v:'videos',t:'🎬 فيديوهات'},{v:'trips',t:'✈️ رحلات'},{v:'days',t:'☀️ أيامنا'}].forEach(o => {
       const opt = document.createElement('option');
       opt.value = o.v; opt.textContent = o.t;
       if ((p.album||'') === o.v) opt.selected = true;
@@ -105,7 +158,7 @@ async function loadExisting() {
     albumSel.addEventListener('change', () => {
       fetch(`/api/photos/${encodeURIComponent(p.filename)}`, {
         method: 'PATCH', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ album: albumSel.value })
+        body: JSON.stringify({ album: albumSel.value, category: albumSel.value })
       });
     });
     card.appendChild(albumSel);
@@ -119,6 +172,50 @@ async function loadExisting() {
 
     grid.appendChild(card);
   });
+}
+
+async function loadWrittenMemories() {
+  const r = await fetch('/api/messages');
+  const d = await r.json();
+  const section = document.getElementById('writtenSection');
+  const list = document.getElementById('writtenList');
+  if (!d.messages || d.messages.length === 0) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  list.innerHTML = d.messages.slice(0, 8).map(m => `
+    <article class="saved-note">
+      <div><strong>${esc(m.title)}</strong><small>${esc(m.memoryDate || m.category || '')}</small></div>
+      <p>${esc(m.body)}</p>
+      <button type="button" onclick="deleteMessage('${esc(m.id)}',this)">حذف</button>
+    </article>`).join('');
+}
+
+async function deleteMessage(id, button) {
+  if (!confirm('تحذفي الرسالة دي؟')) return;
+  const r = await fetch(`/api/messages/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  const d = await r.json();
+  if (d.success) button.closest('.saved-note').remove();
+}
+
+async function loadEvents() {
+  const r = await fetch('/api/events');
+  const d = await r.json();
+  const section = document.getElementById('eventsSection');
+  const list = document.getElementById('eventsList');
+  if (!d.events || d.events.length === 0) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  list.innerHTML = d.events.map(e => `
+    <article class="saved-event">
+      <div><strong>${esc(e.title)}</strong><time>${esc(e.date)}</time></div>
+      <span>${esc(e.note || '')}</span>
+      <button type="button" onclick="deleteEvent('${esc(e.id)}',this)">حذف</button>
+    </article>`).join('');
+}
+
+async function deleteEvent(id, button) {
+  if (!confirm('تحذفي التاريخ ده؟')) return;
+  const r = await fetch(`/api/events/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  const d = await r.json();
+  if (d.success) button.closest('.saved-event').remove();
 }
 
 async function deletePhoto(filename, card) {
@@ -221,17 +318,24 @@ async function doUpload() {
   msg.textContent = '';
 
   const captions = {}, albums = {};
+  const categories = {}, dates = {};
+  const defaultCategory = document.getElementById('bulkCategory').value;
+  const defaultDate = document.getElementById('bulkDate').value;
   selectedFiles.forEach((_, i) => {
     const inp = document.getElementById(`caption_${i}`);
     const sel = document.getElementById(`album_${i}`);
     captions[i] = inp ? inp.value.slice(0, 200) : '';
     albums[i]   = sel ? sel.value : '';
+    categories[i] = albums[i] || defaultCategory;
+    dates[i] = defaultDate;
   });
 
   const formData = new FormData();
   selectedFiles.forEach(f => formData.append('photos', f));
   formData.append('captions', JSON.stringify(captions));
   formData.append('albums',   JSON.stringify(albums));
+  formData.append('categories', JSON.stringify(categories));
+  formData.append('dates', JSON.stringify(dates));
 
   let prog = 0;
   const iv = setInterval(() => { prog = Math.min(prog + 5, 85); pf.style.width = prog + '%'; }, 200);
@@ -260,7 +364,46 @@ async function doUpload() {
   setTimeout(() => { pb.style.display = 'none'; pf.style.width = '0%'; }, 2000);
 }
 
+document.getElementById('messageForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const msg = document.getElementById('messageMsg');
+  msg.textContent = 'جاري حفظ الرسالة...';
+  const r = await fetch('/api/messages', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      title: document.getElementById('messageTitle').value,
+      body: document.getElementById('messageBody').value,
+      category: document.getElementById('messageCategory').value,
+      memoryDate: document.getElementById('messageDate').value
+    })
+  });
+  const d = await r.json();
+  msg.textContent = d.success ? '✅ اتحفظت في ذكرياتنا الكتابية' : (d.message || 'حصلت مشكلة');
+  msg.className = `composer-message ${d.success ? 'ok' : 'error'}`;
+  if (d.success) { document.getElementById('messageForm').reset(); loadWrittenMemories(); }
+});
+
+document.getElementById('eventForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const msg = document.getElementById('eventMsg');
+  msg.textContent = 'جاري حفظ التاريخ...';
+  const r = await fetch('/api/events', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      title: document.getElementById('eventTitle').value,
+      date: document.getElementById('eventDate').value,
+      note: document.getElementById('eventNote').value
+    })
+  });
+  const d = await r.json();
+  msg.textContent = d.success ? '✅ اتحفظ التاريخ في خطنا الزمني' : (d.message || 'حصلت مشكلة');
+  msg.className = `composer-message ${d.success ? 'ok' : 'error'}`;
+  if (d.success) { document.getElementById('eventForm').reset(); loadEvents(); }
+});
+
 loadExisting();
+loadWrittenMemories();
+loadEvents();
 </script>
 </body>
 </html>

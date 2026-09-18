@@ -332,7 +332,7 @@ app.post('/api/upload', requireAuth, upload.array('photos', 200), async (req, re
   if (!req.files || req.files.length === 0)
     return res.status(400).json({ success: false, message: 'مفيش ملفات اتحملت' });
 
-  let captions = {}, albums = {};
+  let captions = {}, albums = {}, categories = {}, dates = {};
   try {
     if (req.body.captions) captions = JSON.parse(req.body.captions);
     if (typeof captions !== 'object' || Array.isArray(captions)) captions = {};
@@ -341,12 +341,20 @@ app.post('/api/upload', requireAuth, upload.array('photos', 200), async (req, re
     if (req.body.albums) albums = JSON.parse(req.body.albums);
     if (typeof albums !== 'object' || Array.isArray(albums)) albums = {};
   } catch { albums = {}; }
+  try {
+    if (req.body.categories) categories = JSON.parse(req.body.categories);
+    if (typeof categories !== 'object' || Array.isArray(categories)) categories = {};
+  } catch { categories = {}; }
+  try {
+    if (req.body.dates) dates = JSON.parse(req.body.dates);
+    if (typeof dates !== 'object' || Array.isArray(dates)) dates = {};
+  } catch { dates = {}; }
 
-  const photos = loadPhotos();
   const thumbs = await Promise.all(req.files.map(f => makeThumb(f.filename)));
   const added = req.files.map((f, i) => {
     const isVideo = /\.(mp4|mov|avi)$/i.test(f.filename);
     const isAudio = /\.(mp3|m4a|wav|aac|ogg)$/i.test(f.filename);
+    const category = String(categories[i] || albums[i] || (isAudio ? 'songs' : (isVideo ? 'videos' : ''))).slice(0, 50);
     const entry = {
       id: `${Date.now()}_${i}`,
       filename: f.filename,
@@ -354,43 +362,92 @@ app.post('/api/upload', requireAuth, upload.array('photos', 200), async (req, re
       type: isAudio ? 'audio' : (isVideo ? 'video' : 'image'),
       thumb: thumbs[i] || undefined,
       caption: String(captions[i] || '').slice(0, 200),
-      album: String(albums[i] || (isAudio ? 'songs' : (isVideo ? 'videos' : ''))).slice(0, 50),
+      album: category,
+      category,
+      memoryDate: String(dates[i] || '').slice(0, 30),
+      poster: isVideo ? '/assets/hana-hero.png' : undefined,
       uploadedAt: new Date().toISOString()
     };
-    photos.push(entry);
     return entry;
   });
-  savePhotos(photos);
+  await insertMedia(added);
   res.json({ success: true, files: added });
 });
 
-app.patch('/api/photos/:filename', requireAuth, (req, res) => {
+app.patch('/api/photos/:filename', requireAuth, async (req, res) => {
   const name = path.basename(req.params.filename);
-  const photos = loadPhotos();
-  const photo  = photos.find(p => p.filename === name);
-  if (!photo) return res.status(404).json({ success: false });
-  if (req.body.album   !== undefined) photo.album   = String(req.body.album).slice(0, 50);
-  if (req.body.caption !== undefined) photo.caption = String(req.body.caption).slice(0, 200);
-  savePhotos(photos);
+  const changes = {};
+  if (req.body.album !== undefined) changes.album = String(req.body.album).slice(0, 50);
+  if (req.body.category !== undefined) changes.category = String(req.body.category).slice(0, 50);
+  if (req.body.caption !== undefined) changes.caption = String(req.body.caption).slice(0, 200);
+  if (req.body.memoryDate !== undefined) changes.memoryDate = String(req.body.memoryDate).slice(0, 30);
+  const result = await updateMedia(name, changes);
+  if (!result.matchedCount) return res.status(404).json({ success: false });
   res.json({ success: true });
 });
 
-app.get('/api/photos', requireAuth, (req, res) => {
-  res.json({ photos: loadPhotos() });
+app.get('/api/photos', requireAuth, async (req, res) => {
+  res.json({ photos: await listMedia() });
 });
 
-app.delete('/api/photos/:filename', requireAuth, (req, res) => {
+app.delete('/api/photos/:filename', requireAuth, async (req, res) => {
   const name = path.basename(req.params.filename);
-  const photos = loadPhotos();
-  const idx = photos.findIndex(p => p.filename === name);
-  if (idx === -1) return res.status(404).json({ success: false });
-  photos.splice(idx, 1);
-  savePhotos(photos);
+  const result = await removeMedia(name);
+  if (!result.deletedCount) return res.status(404).json({ success: false });
   const fp = path.join(__dirname, 'uploads', name);
   if (fs.existsSync(fp)) fs.unlinkSync(fp);
   const tp = path.join(__dirname, 'uploads', 'thumb_' + name.replace(/\.[^.]+$/, '') + '.webp');
   if (fs.existsSync(tp)) fs.unlinkSync(tp);
   res.json({ success: true });
+});
+
+// ── Written memories and date events ───────────────────────
+app.get('/api/messages', requireAuth, async (req, res) => {
+  res.json({ messages: await listMessages() });
+});
+
+app.post('/api/messages', requireAuth, async (req, res) => {
+  const body = String(req.body.body || '').trim().slice(0, 5000);
+  if (!body) return res.status(400).json({ success: false, message: 'اكتبي الرسالة أولًا' });
+  const message = {
+    id: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    title: String(req.body.title || 'ذكرياتنا الكتابية').trim().slice(0, 120),
+    body,
+    category: String(req.body.category || 'حبنا').slice(0, 50),
+    memoryDate: String(req.body.memoryDate || '').slice(0, 30),
+    createdAt: new Date().toISOString()
+  };
+  await createMessage(message);
+  res.json({ success: true, message });
+});
+
+app.delete('/api/messages/:id', requireAuth, async (req, res) => {
+  const result = await removeMessage(String(req.params.id));
+  res.json({ success: !!result.deletedCount });
+});
+
+app.get('/api/events', requireAuth, async (req, res) => {
+  res.json({ events: await listEvents() });
+});
+
+app.post('/api/events', requireAuth, async (req, res) => {
+  const title = String(req.body.title || '').trim().slice(0, 120);
+  const date = String(req.body.date || '').slice(0, 30);
+  if (!title || !date) return res.status(400).json({ success: false, message: 'اكتبي اسم وتاريخ المناسبة' });
+  const event = {
+    id: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    title,
+    date,
+    note: String(req.body.note || '').trim().slice(0, 500),
+    createdAt: new Date().toISOString()
+  };
+  await createEvent(event);
+  res.json({ success: true, event });
+});
+
+app.delete('/api/events/:id', requireAuth, async (req, res) => {
+  const result = await removeEvent(String(req.params.id));
+  res.json({ success: !!result.deletedCount });
 });
 
 app.get('/api/qrcode', requireAuth, async (req, res) => {
@@ -401,8 +458,8 @@ app.get('/api/qrcode', requireAuth, async (req, res) => {
   res.json({ qr });
 });
 
-// ── Backfill thumbnails for existing photos (once at startup) ──
-(async function backfillThumbs() {
+// ── Backfill thumbnails and start after the data store is ready ──
+async function backfillThumbs() {
   const photos = loadPhotos();
   let changed = false;
   for (const p of photos) {
@@ -412,8 +469,17 @@ app.get('/api/qrcode', requireAuth, async (req, res) => {
     }
   }
   if (changed) { savePhotos(photos); console.log('✅ Thumbnails backfilled'); }
-})();
+}
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`💕 Love is running on port ${PORT} — for Hana Youssef forever 💕`);
+async function start() {
+  await backfillThumbs();
+  await initDatabase();
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`💕 Love is running on port ${PORT} — for Hana Youssef forever 💕`);
+  });
+}
+
+start().catch(error => {
+  console.error('ERROR: data store could not start:', error.message);
+  process.exit(1);
 });
