@@ -3,9 +3,12 @@ const session = require('express-session');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const { execFile } = require('child_process');
+const { promisify } = require('util');
 const QRCode = require('qrcode');
 const sharp = require('sharp');
 const { MongoClient } = require('mongodb');
+const execFileAsync = promisify(execFile);
 
 // ── Require secrets at startup ───────────────────────────
 const SESSION_SECRET = process.env.SESSION_SECRET;
@@ -306,15 +309,33 @@ app.get('/upload', requireAuthPage, (req, res) => {
 
 // ── Thumbnail generation ─────────────────────────────────
 async function makeThumb(filename) {
-  if (!/\.(jpg|jpeg|png|gif|webp)$/i.test(filename)) return null;
-  const thumbName = 'thumb_' + filename.replace(/\.[^.]+$/, '') + '.webp';
   const src = path.join(UPLOADS_DIR, filename);
+  const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(filename);
+  const isVideo = /\.(mp4|mov|avi)$/i.test(filename);
+  if (!isImage && !isVideo) return null;
+
+  const thumbName = 'thumb_' + filename.replace(/\.[^.]+$/, '') + (isVideo ? '.jpg' : '.webp');
   const dst = path.join(UPLOADS_DIR, thumbName);
   try {
-    await sharp(src).rotate().resize(640, 640, { fit: 'inside', withoutEnlargement: true }).webp({ quality: 72 }).toFile(dst);
+    if (isImage) {
+      await sharp(src).rotate().resize(640, 640, { fit: 'inside', withoutEnlargement: true }).webp({ quality: 72 }).toFile(dst);
+    } else {
+      try {
+        await execFileAsync('ffmpeg', [
+          '-y', '-ss', '00:00:01', '-i', src, '-frames:v', '1',
+          '-vf', 'scale=640:-2', '-q:v', '4', dst
+        ], { timeout: 30000 });
+      } catch {
+        // Very short clips may not have a frame at one second.
+        await execFileAsync('ffmpeg', [
+          '-y', '-ss', '00:00:00', '-i', src, '-frames:v', '1',
+          '-vf', 'scale=640:-2', '-q:v', '4', dst
+        ], { timeout: 30000 });
+      }
+    }
     return '/media/' + thumbName;
   } catch (e) {
-    console.error('Thumb failed for', filename, e.message);
+    console.error('Preview failed for', filename, e.message);
     return null;
   }
 }
@@ -365,7 +386,7 @@ app.post('/api/upload', requireAuth, upload.array('photos', 200), async (req, re
       album: category,
       category,
       memoryDate: String(dates[i] || '').slice(0, 30),
-      poster: isVideo ? '/assets/hana-hero.png' : undefined,
+      poster: isVideo ? (thumbs[i] || '/assets/hana-hero.png') : undefined,
       uploadedAt: new Date().toISOString()
     };
     return entry;
@@ -463,12 +484,34 @@ async function backfillThumbs() {
   const photos = loadPhotos();
   let changed = false;
   for (const p of photos) {
-    if (p.type === 'image' && !p.thumb) {
+    if ((p.type === 'image' || p.type === 'video') && !p.thumb) {
       const t = await makeThumb(p.filename);
-      if (t) { p.thumb = t; changed = true; }
+      if (t) {
+        p.thumb = t;
+        if (p.type === 'video') p.poster = t;
+        changed = true;
+      }
     }
   }
   if (changed) { savePhotos(photos); console.log('✅ Thumbnails backfilled'); }
+}
+
+async function backfillMongoThumbs() {
+  if (!mongoDb) return;
+  const photos = await listMedia();
+  let count = 0;
+  for (const photo of photos) {
+    if ((photo.type !== 'image' && photo.type !== 'video') || photo.thumb) continue;
+    const thumb = await makeThumb(photo.filename);
+    if (thumb) {
+      await updateMedia(photo.filename, {
+        thumb,
+        ...(photo.type === 'video' ? { poster: thumb } : {})
+      });
+      count++;
+    }
+  }
+  if (count) console.log(`✅ Generated ${count} media previews`);
 }
 
 async function start() {
@@ -476,6 +519,7 @@ async function start() {
   await initDatabase();
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`💕 Love is running on port ${PORT} — for Hana Youssef forever 💕`);
+    backfillMongoThumbs().catch(error => console.error('Preview backfill failed:', error.message));
   });
 }
 
