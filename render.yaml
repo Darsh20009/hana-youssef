@@ -11,3 +11,7 @@ services:
         generateValue: true
       - key: LOVE_PASSWORD
         sync: false
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DB
+        value: hana_youssef
