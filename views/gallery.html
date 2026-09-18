@@ -31,7 +31,7 @@
       <a href="#memories"><span>▣</span> ذكرياتنا</a>
       <a href="#message"><span>✉</span> رسائلي لك</a>
       <a href="#music"><span>♫</span> موسيقانا</a>
-      <a href="#moments"><span>✦</span> لحظات عشوائية</a>
+      <a href="#moments"><span>✦</span> لحظة عشوائية</a>
       <a href="#timeline"><span>◷</span> خطنا الزمني</a>
       <a href="/upload"><span>＋</span> إضافة ذكرى</a>
     </nav>
@@ -109,6 +109,14 @@
         <div id="timelineList" class="timeline-list">
           <div class="written-empty">أضيفي أول تاريخ مهم من صفحة الإضافة ✦</div>
         </div>
+      </section>
+
+      <section class="random-moment-card" id="moments">
+        <div class="section-heading">
+          <h2>لحظة عشوائية</h2>
+          <button type="button" onclick="showRandomMoment()">لحظة أخرى <span>↻</span></button>
+        </div>
+        <p id="randomMomentText">اضغطي على الزر لنستعيد تفصيلة حلوة من حكايتنا.</p>
       </section>
 
       <div class="dashboard-lower">
@@ -409,6 +417,21 @@ function renderTimeline() {
       <time>${esc(event.date)}</time>
       <div><strong>${esc(event.title)}</strong><span>${esc(event.note || '')}</span></div>
     </article>`).join('');
+}
+
+function showRandomMoment() {
+  const source = [
+    ...PHRASES,
+    ...writtenMessages.map(message => message.body),
+    ...allPhotos.filter(photo => photo.caption).map(photo => photo.caption)
+  ].filter(Boolean);
+  const target = document.getElementById('randomMomentText');
+  if (!target || !source.length) return;
+  const current = target.dataset.current || '';
+  const choices = source.filter(item => item !== current);
+  const moment = choices[Math.floor(Math.random() * choices.length)] || source[0];
+  target.textContent = moment;
+  target.dataset.current = moment;
 }
 
 function renderGallery() {

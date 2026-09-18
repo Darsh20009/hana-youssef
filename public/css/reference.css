@@ -947,6 +947,39 @@
   font-size: 11px;
 }
 
+.random-moment-card {
+  position: relative;
+  margin-top: 14px;
+  padding: 18px;
+  color: var(--ink);
+  background: #eadfd3;
+  border: 1px solid rgba(112, 91, 77, .1);
+  border-radius: 9px;
+  box-shadow: var(--shadow-paper);
+  direction: rtl;
+}
+
+.random-moment-card .section-heading {
+  margin-bottom: 10px;
+}
+
+.random-moment-card .section-heading button {
+  color: #8f5b50;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+}
+
+.random-moment-card p {
+  min-height: 28px;
+  color: #6f5d53;
+  font-family: Georgia, 'Tajawal', serif;
+  font-size: 15px;
+  line-height: 1.9;
+}
+
 /* ── Reference upload page ───────────────────────────────── */
 .reference-upload {
   min-height: 100vh;
