@@ -42,6 +42,7 @@ app.set('trust proxy', 1);
 
 const UPLOADS_DIR = 'uploads';
 const DATA_FILE   = path.join('data', 'photos.json');
+const ATTACHED_MESSAGES_FILE = path.join('attached_assets', 'Pasted---1789748032217_1789748032218.txt');
 const MONGODB_URI = process.env.MONGODB_URI;
 const MONGODB_DB  = process.env.MONGODB_DB || 'hana_youssef';
 let mongoClient = null;
@@ -257,6 +258,43 @@ async function createEvent(event) {
 async function removeEvent(id) {
   if (!mongoDb) return { deletedCount: 0 };
   return mongoDb.collection('events').deleteOne({ id });
+}
+
+function splitMessageText(text, maxLength = 3600) {
+  const chunks = [];
+  let remaining = text.trim();
+  while (remaining.length > maxLength) {
+    let cut = remaining.lastIndexOf(' ', maxLength);
+    if (cut < Math.floor(maxLength * 0.65)) cut = maxLength;
+    chunks.push(remaining.slice(0, cut).trim());
+    remaining = remaining.slice(cut).trim();
+  }
+  if (remaining) chunks.push(remaining);
+  return chunks;
+}
+
+async function seedAttachedMessages() {
+  if (!mongoDb || !fs.existsSync(ATTACHED_MESSAGES_FILE)) return;
+  const messages = mongoDb.collection('messages');
+  const seedKey = 'attached-love-messages';
+  if (await messages.countDocuments({ seedKey })) return;
+
+  const raw = fs.readFileSync(ATTACHED_MESSAGES_FILE, 'utf8').trim();
+  const start = raw.indexOf('عايز اقولك');
+  const loveText = start >= 0 ? raw.slice(start) : raw;
+  const chunks = splitMessageText(loveText);
+  if (!chunks.length) return;
+
+  await messages.insertMany(chunks.map((body, index) => ({
+    id: `${seedKey}-${index + 1}`,
+    seedKey,
+    title: `رسالة من قلبي ليكي ${index + 1}`,
+    body: body.slice(0, 5000),
+    category: 'حبنا',
+    memoryDate: '',
+    createdAt: new Date().toISOString()
+  })), { ordered: true });
+  console.log(`✅ Added ${chunks.length} written memories from the attached messages`);
 }
 
 // ── Public Routes ────────────────────────────────────────
@@ -526,6 +564,7 @@ async function backfillMongoThumbs() {
 async function start() {
   await backfillThumbs();
   await initDatabase();
+  await seedAttachedMessages();
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`💕 Love is running on port ${PORT} — for Hana Youssef forever 💕`);
     backfillMongoThumbs().catch(error => console.error('Preview backfill failed:', error.message));
